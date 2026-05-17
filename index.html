@@ -1520,14 +1520,16 @@ function showDeathStarAnimation(){
       ctx.fillRect(sx,sy,1,1);
     }
     if(!explosionStarted){
-      shipX += (deathStarX - shipX)*0.02;
-      shipY += (deathStarY - shipY)*0.02 - 2;
-      shipAngle += 0.05;
-      drawPixelShip(shipX, shipY, shipAngle);
-      drawDeathStar(deathStarX, deathStarY, 0);
-      if(Math.hypot(shipX-deathStarX, shipY-deathStarY)<70 && frame>60){
+      const dx=deathStarX-shipX, dy=deathStarY-shipY;
+      const dist=Math.hypot(dx,dy);
+      const speed=Math.max(3,dist*0.04);
+      if(dist>1){shipX+=dx/dist*speed;shipY+=dy/dist*speed;}
+      shipAngle+=0.05;
+      drawPixelShip(shipX,shipY,shipAngle);
+      drawDeathStar(deathStarX,deathStarY,0);
+      if(dist<70&&frame>60){
         explosionStarted=true;
-        createExplosion(deathStarX, deathStarY);
+        createExplosion(deathStarX,deathStarY);
         sfxWin();
       }
     } else {
