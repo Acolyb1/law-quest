@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAW QUEST — Evaluación Constitucional</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+:root{
+  --px:#FFD700;--px2:#FFA500;--px3:#FF6B00;
+  --bg:#020209;--panel:#080818;--panel2:#0f0f28;
+  --cyan:#00FFFF;--mag:#FF00FF;--grn:#00FF41;
+  --red:#FF3333;--blue:#3399FF;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Press Start 2P',monospace;background:var(--bg);color:var(--px);min-height:100vh;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.15) 0px,rgba(0,0,0,.15) 1px,transparent 1px,transparent 3px);}
+#stars{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+
+.screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:16px;text-align:center;}
+.screen.active{display:flex;}
+
+.px-box{background:var(--panel);border:4px solid var(--px);outline:2px solid var(--px3);outline-offset:3px;
+  padding:22px 26px;max-width:720px;width:100%;position:relative;
+  box-shadow:0 0 0 8px var(--bg),0 0 40px rgba(255,215,0,.25),inset 0 0 30px rgba(255,215,0,.03);}
+.px-box::before,.px-box::after{content:'';position:absolute;width:8px;height:8px;background:var(--cyan);}
+.px-box::before{top:-5px;left:-5px;}
+.px-box::after{bottom:-5px;right:-5px;}
+
+.hud{display:flex;justify-content:space-between;align-items:center;background:#000;border:2px solid var(--px);padding:7px 12px;margin-bottom:12px;font-size:.5rem;letter-spacing:1px;}
+.hud-pts{color:var(--grn);}
+.hud-miss{color:var(--cyan);}
+.hud-lvl{color:var(--red);}
+
+.btn-px{font-family:'Press Start 2P',monospace;font-size:.6rem;background:var(--px);color:#000;border:none;
+  padding:9px 18px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;
+  box-shadow:4px 4px 0 var(--px3);transition:all .05s;}
+.btn-px:hover{background:var(--px2);transform:translate(2px,2px);box-shadow:2px 2px 0 var(--px3);}
+.btn-px:active{transform:translate(4px,4px);box-shadow:none;}
+.btn-px.cy{background:var(--cyan);box-shadow:4px 4px 0 #007777;}
+.btn-px.cy:hover{background:#00ddd;}
+.btn-px.rd{background:var(--red);color:#fff;box-shadow:4px 4px 0 #880000;}
+.btn-px.sm{font-size:.5rem;padding:6px 12px;}
+
+.opt-btn{font-family:'VT323',monospace;font-size:1.1rem;background:#000;border:2px solid #333;
+  color:#bbb;padding:9px 12px;cursor:pointer;text-align:left;transition:all .1s;
+  display:flex;align-items:flex-start;gap:8px;width:100%;letter-spacing:.3px;}
+.opt-btn:hover:not(:disabled){border-color:var(--px);color:var(--px);background:#090900;}
+.opt-btn.correct{border-color:var(--grn);color:var(--grn);background:#001200;}
+.opt-btn.wrong{border-color:var(--red);color:var(--red);background:#120000;}
+.opt-btn:disabled{cursor:default;}
+.opt-letter{color:var(--cyan);font-weight:700;min-width:20px;}
+.opts{display:grid;gap:5px;margin-bottom:10px;}
+
+.q-box{font-family:'VT323',monospace;font-size:1.15rem;line-height:1.5;color:#eee;
+  margin-bottom:12px;border-left:4px solid var(--px);padding:9px 12px;background:rgba(255,215,0,.03);letter-spacing:.2px;}
+
+.fb{font-family:'VT323',monospace;font-size:1.15rem;padding:7px 12px;border:2px solid;margin:5px 0;display:none;letter-spacing:.3px;}
+.fb.show{display:block;}
+.fb.ok{border-color:var(--grn);color:var(--grn);background:#001200;}
+.fb.bad{border-color:var(--red);color:var(--red);background:#120000;}
+
+.timer-wrap{height:8px;background:#111;border:2px solid #333;margin-bottom:6px;overflow:hidden;}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--grn),var(--px),var(--red));transition:width 1s linear;}
+.timer-n{font-size:.55rem;text-align:right;color:var(--cyan);margin-bottom:8px;}
+
+.lls{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-bottom:10px;}
+.ll-btn{font-family:'Press Start 2P',monospace;font-size:.45rem;background:#000;border:2px solid var(--blue);
+  color:var(--blue);padding:5px 9px;cursor:pointer;transition:all .1s;}
+.ll-btn:hover:not(:disabled){background:rgba(51,153,255,.12);}
+.ll-btn:disabled{opacity:.3;cursor:default;}
+
+.code-row{display:flex;gap:7px;justify-content:center;margin:14px 0;}
+.dslot{width:48px;height:60px;border:3px solid #333;display:flex;align-items:center;justify-content:center;
+  font-family:'Press Start 2P';font-size:1.3rem;color:var(--px);background:#000;transition:all .2s;}
+.dslot.rev{border-color:var(--px);box-shadow:0 0 14px var(--px);}
+.dslot.hid{color:#222;border-color:#222;}
+.dslot.bad{border-color:var(--red);color:var(--red);animation:wshk .3s;}
+@keyframes wshk{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+.prize-ladder{display:flex;flex-direction:column;gap:2px;max-height:360px;overflow-y:auto;}
+.prize-row{display:flex;justify-content:space-between;padding:4px 7px;border:1px solid transparent;font-size:.45rem;}
+.prize-row.cur{border-color:var(--px);color:var(--px);background:rgba(255,215,0,.08);}
+.prize-row.safe{color:var(--cyan);}
+.prize-row.done{color:#333;}
+
+.hop-grid{display:grid;grid-template-columns:68px 68px 68px;gap:4px;margin:12px auto;position:relative;display:inline-grid;}
+.hop-cell{width:68px;height:56px;border:3px solid #1a1a1a;display:flex;align-items:center;justify-content:center;
+  font-family:'Press Start 2P';font-size:.75rem;background:#030310;color:#333;transition:all .3s;}
+.hop-cell.act{border-color:var(--px);color:var(--px);box-shadow:0 0 10px var(--px);}
+.hop-cell.clr{border-color:var(--grn);color:var(--grn);background:#001400;}
+.hop-cell.emp{background:transparent;border-color:transparent;color:transparent;}
+.ptoken{position:absolute;font-size:1.4rem;z-index:10;transition:all .5s cubic-bezier(.34,1.4,.64,1);filter:drop-shadow(0 0 6px var(--px));}
+
+.score-ring{width:120px;height:120px;margin:0 auto 12px;border:5px solid var(--px);outline:2px solid var(--px3);outline-offset:3px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000;}
+.score-ring .big{font-family:'Press Start 2P';font-size:2.2rem;color:var(--px);}
+.score-ring .of{font-family:'VT323';font-size:1rem;color:#555;margin-top:3px;}
+
+.rep-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0;}
+.rep-stat{background:#000;border:2px solid #222;padding:10px;text-align:center;}
+.rep-stat .val{font-family:'Press Start 2P';font-size:1.2rem;color:var(--px);}
+.rep-stat .lbl{font-family:'VT323';font-size:.9rem;color:#555;margin-top:4px;}
+
+.px-sep{display:flex;align-items:center;gap:3px;justify-content:center;margin:10px 0;}
+.px-sep span{display:inline-block;width:7px;height:7px;background:var(--px);}
+.px-sep span:nth-child(2),.px-sep span:nth-child(4){width:4px;height:4px;}
+
+.vol-row{display:flex;align-items:center;gap:6px;font-family:'VT323';font-size:.95rem;color:var(--cyan);margin:3px 0;}
+.vol-row input[type=range]{flex:1;height:4px;accent-color:var(--px);}
+
+.notif{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#000;border:2px solid var(--cyan);
+  padding:8px 18px;font-family:'VT323';font-size:1rem;color:var(--cyan);z-index:500;opacity:0;transition:opacity .2s;pointer-events:none;}
+.notif.show{opacity:1;}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.blink{animation:blink .8s step-end infinite;}
+
+/* CUTSCENE */
+#cutscene{display:none;position:fixed;inset:0;background:#000;z-index:400;flex-direction:column;align-items:center;justify-content:center;}
+#cutscene.active{display:flex;}
+#csc{image-rendering:pixelated;image-rendering:crisp-edges;max-width:100%;max-height:80vh;}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:300;display:none;align-items:center;justify-content:center;padding:18px;}
+.modal-bg.open{display:flex;}
+.modal-inner{background:var(--panel);border:4px solid var(--px);outline:2px solid var(--px3);outline-offset:3px;
+  padding:24px;max-width:580px;width:100%;max-height:85vh;overflow-y:auto;position:relative;}
+.modal-inner h2{font-size:.8rem;margin-bottom:10px;color:var(--px);}
+.modal-inner h3{font-family:'VT323';font-size:1.1rem;color:var(--cyan);margin:10px 0 3px;}
+.modal-inner p,.modal-inner li{font-family:'VT323';font-size:.95rem;line-height:1.6;color:#999;}
+.modal-inner ul{padding-left:12px;}
+
+@media(max-width:500px){
+  .px-box{padding:14px 12px;}
+  .rep-grid{grid-template-columns:1fr;}
+  .dslot{width:38px;height:50px;font-size:1rem;}
+  .hop-cell{width:58px;height:48px;}
+}
+
+/* ── ROLE SELECTOR ── */
+#screen-role .role-btn{
+  font-family:'Press Start 2P',monospace;font-size:.65rem;
+  padding:16px 28px;cursor:pointer;border:3px solid;letter-spacing:1px;
+  text-transform:uppercase;background:#000;transition:all .12s;
+  box-shadow:5px 5px 0;
+}
+#screen-role .role-btn.student{border-color:var(--cyan);color:var(--cyan);box-shadow:5px 5px 0 #005555;}
+#screen-role .role-btn.student:hover{background:rgba(0,255,255,.08);transform:translate(2px,2px);box-shadow:3px 3px 0 #005555;}
+#screen-role .role-btn.teacher{border-color:var(--px);color:var(--px);box-shadow:5px 5px 0 var(--px3);}
+#screen-role .role-btn.teacher:hover{background:rgba(255,215,0,.08);transform:translate(2px,2px);box-shadow:3px 3px 0 var(--px3);}
+
+/* ── TEACHER MODAL ── */
+#teacherModal .modal-inner input[type=password]{
+  font-family:'Press Start 2P',monospace;font-size:1.1rem;letter-spacing:6px;
+  background:#000;border:3px solid var(--px);color:var(--px);
+  padding:10px 14px;width:100%;outline:none;text-align:center;margin:12px 0;display:block;
+}
+
+/* ── M2 VICTORY OVERLAY ── */
+#m2-victory{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);
+  z-index:350;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+#m2-victory.active{display:flex;}
+#m2-vic-canvas{position:absolute;inset:0;pointer-events:none;}
+#m2-vic-content{position:relative;z-index:2;text-align:center;}
+
+
+#screen-login .login-box{max-width:420px;}
+#screen-login input[type=text]{
+  font-family:'Press Start 2P',monospace;font-size:.85rem;
+  background:#000;border:3px solid var(--px);color:var(--px);
+  padding:12px 16px;width:100%;outline:none;letter-spacing:2px;
+  margin-bottom:14px;display:block;text-align:center;
+}
+#screen-login input[type=text]::placeholder{color:#333;font-size:.65rem;}
+
+/* ── STAR WARS CRAWL ── */
+#screen-intro{overflow:hidden;background:#000;}
+.crawl-viewport{
+  position:relative;width:100%;max-width:680px;height:70vh;
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 18%,black 80%,transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0%,black 18%,black 80%,transparent 100%);
+  perspective:300px;
+}
+.crawl-content{
+  position:absolute;bottom:0;width:100%;
+  transform:rotateX(20deg) translateY(100%);
+  transform-origin:50% 100%;
+  animation:crawl 100s linear forwards;
+  padding:0 10%;
+}
+@keyframes crawl{
+  0%{transform:rotateX(20deg) translateY(100%);}
+  100%{transform:rotateX(20deg) translateY(-400%);}
+}
+.crawl-content .crawl-title{
+  font-family:'Press Start 2P',monospace;font-size:clamp(.7rem,2vw,1rem);
+  color:var(--px);text-align:center;line-height:1.8;
+  text-shadow:0 0 20px var(--px);margin-bottom:32px;
+}
+.crawl-content .crawl-sub{
+  font-family:'VT323',monospace;font-size:clamp(1.1rem,2.5vw,1.5rem);
+  color:#d4b800;text-align:justify;line-height:1.75;
+}
+.crawl-logo{
+  font-family:'VT323',monospace;font-size:clamp(2rem,6vw,3.5rem);
+  color:var(--px);text-align:center;letter-spacing:4px;
+  text-shadow:0 0 30px var(--px),4px 4px 0 var(--px3);
+  margin:0 auto 20px;display:block;
+}
+.intro-far{
+  font-family:'VT323',monospace;font-size:clamp(1rem,3vw,1.4rem);
+  color:#888;text-align:center;letter-spacing:3px;
+  margin-bottom:30px;
+  animation:fadeInSlow 3s ease forwards;
+}
+@keyframes fadeInSlow{from{opacity:0}to{opacity:1}}
+.skip-btn-wrap{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  z-index:10;
+}
+
+/* NUEVO OVERLAY PARA ANIMACION FINAL ESTRELLA DE LA MUERTE */
+#deathstar-animation{
+  display:none;position:fixed;inset:0;background:#000;
+  z-index:500;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+#deathstar-animation.active{display:flex;}
+#ds-canvas{position:absolute;inset:0;width:100%;height:100%;}
+#ds-mission-complete{
+  position:relative;z-index:6;color:var(--px);font-family:'Press Start 2P',monospace;
+  text-shadow:0 0 20px var(--px);text-align:center;letter-spacing:4px;
+  background:#000;border:4px solid var(--px);padding:12px 24px;
+  margin-top:20px;opacity:0;transform:scale(0.8);
+  transition:opacity 0.5s, transform 0.5s;
+}
+#ds-mission-complete.show{
+  opacity:1;transform:scale(1);
+}
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+<div class="notif" id="notif"></div>
+
+<!-- CUTSCENE -->
+<div id="cutscene">
+  <canvas id="csc" width="640" height="360"></canvas>
+  <div style="margin-top:12px;font-family:'VT323';font-size:1.1rem;color:var(--cyan);" id="csc-msg" class="blink">CARGANDO MISIÓN 2...</div>
+</div>
+
+<!-- ANIMACION FINAL ESTRELLA DE LA MUERTE -->
+<div id="deathstar-animation">
+  <canvas id="ds-canvas"></canvas>
+  <div id="ds-mission-complete">¡MISIÓN CUMPLIDA!</div>
+</div>
+
+<!-- MANUAL -->
+<div class="modal-bg" id="manualModal">
+  <div class="modal-inner" style="position:relative">
+    <button class="btn-px rd sm" style="position:absolute;top:10px;right:10px;" onclick="closeManual()">X</button>
+    <h2>&#9670; MANUAL DEL JUEGO &#9670;</h2>
+    <div class="px-sep"><span></span><span></span><span></span><span></span><span></span></div>
+    <h3>&#9658; OBJETIVO</h3>
+    <p>Supera 3 misiones. Puntaje MAXIMO: <strong style="color:var(--px)">30 PUNTOS</strong>.</p>
+    <h3>&#9658; MISION 1 — INTRUSION CONSTITUCIONAL</h3>
+    <ul>
+      <li>Responde preguntas para revelar un codigo de 5 digitos.</li>
+      <li><strong style="color:var(--px)">+2 pts</strong> si aciertas el digito al <strong style="color:var(--grn)">primer intento</strong>.</li>
+      <li><strong style="color:var(--cyan)">+1 pt</strong> si lo recuperas tras un error.</li>
+      <li>Sin errores en los 5 digitos = <strong style="color:var(--px)">10 PUNTOS PERFECTOS</strong>.</li>
+    </ul>
+    <h3>&#9658; MISION 2 — QUIEN QUIERE SER MAGISTRADO</h3>
+    <ul>
+      <li>10 preguntas · 30 segundos por pregunta · 3 comodines.</li>
+      <li>Vale hasta 10 pts.</li>
+    </ul>
+    <h3>&#9658; MISION 3 — LA GOLOSA</h3>
+    <ul>
+      <li>Avanza casilla a casilla respondiendo. Vale hasta 10 pts.</li>
+    </ul>
+    <h3>&#9658; AUDIO</h3>
+    <p>Musica y Voz son controles INDEPENDIENTES. La voz que lee las preguntas no se afecta con el volumen de musica.</p>
+    <h3>&#9658; ESCALA DE RANGOS FINALES</h3>
+    <ul>
+      <li><strong style="color:#00FF41">25 – 30 pts &rarr; MAGISTRADO EXPERTO</strong></li>
+      <li><strong style="color:#FFD700">20 – 24 pts &rarr; LEGISLADOR COMPETENTE</strong></li>
+      <li><strong style="color:#FFA500">15 – 19 pts &rarr; FUNCIONARIO EN FORMACION</strong></li>
+      <li><strong style="color:#FF3333">&lt; 15 pts &rarr; REQUIERE REFORZAR CONOCIMIENTOS</strong></li>
+    </ul>
+    <div style="text-align:center;margin-top:18px;"><button class="btn-px" onclick="closeManual()">&#9658; ENTENDIDO</button></div>
+  </div>
+</div>
+
+<!-- TEACHER MODAL -->
+<div class="modal-bg" id="teacherModal">
+  <div class="modal-inner" style="max-width:420px;text-align:center;">
+    <div style="font-family:'Press Start 2P';font-size:.7rem;color:var(--px);margin-bottom:10px;">&#9670; ACCESO DOCENTE &#9670;</div>
+    <div class="px-sep"><span></span><span></span><span></span><span></span><span></span></div>
+    <div style="font-family:'VT323';font-size:1rem;color:#666;margin:10px 0;letter-spacing:2px;">INGRESA LA CLAVE MAESTRA</div>
+    <input type="password" id="teacherPass" maxlength="6" placeholder="••••"
+      onkeydown="if(event.key==='Enter')checkTeacherPass()">
+    <div class="fb" id="teacher-fb"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;">
+      <button class="btn-px" onclick="checkTeacherPass()">&#9658; ACCEDER</button>
+      <button class="btn-px rd sm" onclick="closeTeacherModal()">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- M2 VICTORY OVERLAY -->
+<div id="m2-victory">
+  <canvas id="m2-vic-canvas"></canvas>
+  <div id="m2-vic-content">
+    <div style="font-family:'VT323';font-size:clamp(2.5rem,8vw,4rem);color:var(--px);
+      text-shadow:0 0 30px var(--px),4px 4px 0 var(--px3);letter-spacing:4px;margin-bottom:8px;" class="blink">
+      ¡MISION 2 COMPLETADA!
+    </div>
+    <div style="font-family:'Press Start 2P';font-size:clamp(.5rem,2vw,.75rem);color:var(--cyan);margin-bottom:16px;letter-spacing:2px;">
+      ¿QUIEN QUIERE SER MAGISTRADO?
+    </div>
+    <div style="font-family:'VT323';font-size:2rem;color:var(--grn);margin-bottom:6px;" id="vic-m2-pts"></div>
+    <div style="font-family:'VT323';font-size:1.1rem;color:#555;margin-bottom:24px;">PUNTOS OBTENIDOS EN ESTA MISION</div>
+    <div style="font-family:'Press Start 2P';font-size:.5rem;color:#333;letter-spacing:2px;" class="blink">
+      CARGANDO MISION 3...
+    </div>
+  </div>
+</div>
+
+<!-- ROLE SELECTOR -->
+<div class="screen active" id="screen-role">
+  <div style="font-family:'VT323';font-size:clamp(2.5rem,8vw,4.5rem);color:var(--px);text-shadow:4px 4px 0 var(--px3);letter-spacing:4px;margin-bottom:4px;">LAW QUEST</div>
+  <div style="font-family:'Press Start 2P';font-size:clamp(.45rem,1.5vw,.7rem);color:var(--cyan);letter-spacing:2px;margin-bottom:6px;">EVALUACION CONSTITUCIONAL · COLOMBIA 1991</div>
+  <canvas id="emblem" width="80" height="96" style="margin-bottom:18px;image-rendering:pixelated;"></canvas>
+
+  <div class="px-box" style="max-width:480px;margin-bottom:14px;">
+    <div style="font-family:'VT323';font-size:1rem;color:#555;margin-bottom:16px;letter-spacing:2px;">&#9658; SELECCIONA TU ROL, AGENTE</div>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:6px;">
+      <button class="role-btn student" onclick="selectRole('student')">&#128119; ESTUDIANTE</button>
+      <button class="role-btn teacher" onclick="selectRole('teacher')">&#127979; DOCENTE</button>
+    </div>
+    <div style="font-family:'VT323';font-size:1.2rem;color:var(--px);margin-top:14px;" class="blink">— ELIGE TU DESTINO —</div>
+  </div>
+
+  <!-- AUTHORS on role screen -->
+  <div class="px-box" style="max-width:480px;padding:12px 18px;">
+    <div style="font-family:'Press Start 2P';font-size:.42rem;color:#444;margin-bottom:8px;letter-spacing:2px;text-align:center;">&#9670; AUTORES DEL PROYECTO &#9670;</div>
+    <div style="font-family:'VT323';font-size:.95rem;color:var(--px);line-height:1.85;letter-spacing:1px;text-align:center;">
+      MANUELA SUAREZ &nbsp;·&nbsp; JENNIFER QUIROZ<br>
+      SANTIAGO HOYOS &nbsp;·&nbsp; SEBASTIAN HOYOS<br>
+      SEBASTIAN QUERUBIN &nbsp;·&nbsp; ALEJANDRA CANO
+    </div>
+    <div style="font-family:'VT323';font-size:.8rem;color:#3a3a3a;margin-top:6px;letter-spacing:2px;text-align:center;">DERECHO CONSTITUCIONAL · 2026</div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="screen" id="screen-login">
+  <div style="font-family:'VT323';font-size:clamp(2rem,7vw,3.8rem);color:var(--px);text-shadow:4px 4px 0 var(--px3);letter-spacing:4px;margin-bottom:6px;">LAW QUEST</div>
+  <div style="font-family:'Press Start 2P';font-size:clamp(.5rem,1.5vw,.75rem);color:var(--cyan);letter-spacing:2px;margin-bottom:20px;">EVALUACION CONSTITUCIONAL · COLOMBIA 1991</div>
+  <div class="px-box login-box">
+    <div style="font-family:'VT323';font-size:1rem;color:#555;margin-bottom:12px;letter-spacing:2px;">&#9658; INGRESA TU NOMBRE, AGENTE</div>
+    <input type="text" id="playerName" placeholder="NOMBRE DEL JUGADOR" maxlength="20" autocomplete="off"
+      onkeydown="if(event.key==='Enter')loginEnter()">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="btn-px" onclick="loginEnter()">&#9658; ENTRAR</button>
+      <button class="btn-px cy" onclick="openManual()">? MANUAL</button>
+    </div>
+    <div style="font-family:'VT323';font-size:1.2rem;color:var(--px);margin-top:12px;" class="blink">— INSERT COIN —</div>
+  </div>
+  <div class="px-box" style="max-width:380px;padding:12px 18px;margin-top:12px;">
+    <div style="font-family:'VT323';font-size:.85rem;color:#444;margin-bottom:7px;letter-spacing:2px;">&#9670; CONTROL DE AUDIO &#9670;</div>
+    <div class="vol-row">&#127925; MUSICA <input type="range" id="musicVol" min="0" max="100" value="50" oninput="setMusicVol(this.value)"> <span id="musicVolLbl" style="min-width:26px;font-size:.85rem;">50</span></div>
+    <div class="vol-row">&#128266; VOZ &nbsp;&nbsp;&nbsp;&nbsp;<input type="range" id="voiceVol" min="0" max="100" value="100" oninput="setVoiceVol(this.value)"> <span id="voiceVolLbl" style="min-width:26px;font-size:.85rem;">100</span></div>
+  </div>
+</div>
+
+<!-- INTRO / STAR WARS CRAWL -->
+<div class="screen" id="screen-intro" style="position:relative;padding:0;">
+  <div class="intro-far" style="position:absolute;top:20px;left:50%;transform:translateX(-50%);width:100%;z-index:2;">
+    Hace mucho tiempo, en una republica muy, muy lejana...
+  </div>
+  <div class="crawl-viewport">
+    <div class="crawl-content">
+      <div style="height:60px;"></div>
+      <div class="crawl-logo">LAW QUEST</div>
+      <div class="crawl-title">
+        EL DESPERTAR DE LA CARTA MAGNA
+      </div>
+      <div class="crawl-sub">
+        Es un periodo de profunda incertidumbre. El pais Colombia, devastado durante decadas por las fuerzas oscuras de la violencia, la exclusion y un viejo decreto de Estado de Sitio que parecia eterno, se encontraba al borde del colapso bajo el yugo del antiguo Imperio de 1886. Aquel viejo orden, centralista y rigido, ahogaba las voces de las diversas provincias y clanes que habitaban sus ricas cordilleras y selvas.
+        <br><br>
+        Pero la esperanza nunca muere en los corazones de los rebeldes. Impulsados por una poderosa alianza de jovenes estudiantes, indigenas, minorias y ciudadanos de a pie, se desato un movimiento sin precedentes: la 'Septima Papeleta', una perturbacion en la Fuerza que obligo al regimen a convocar a una Gran Asamblea Nacional.
+        <br><br>
+        De ese choque cosmico de ideas nacio un nuevo testamento de equilibrio: La Constitucion de 1991. Una guia mistica disenada para descentralizar el poder, reconocer la diversidad de todas las especies y culturas del territorio, y entregar a cada ciudadano un sable de luz conceptual: el Estado Social de Derecho y las acciones de proteccion de los Derechos Fundamentales.
+        <br><br>
+        Sin embargo, la paz es un camino de vigilancia constante. El remanente imperial, infiltrado en las sombras de la burocracia y la corrupcion, busca bloquear las arterias de la Republica, confundir los tramites legislativos y adormecer la conciencia del pueblo para recuperar el control absoluto del territorio...
+        <br><br><br><br>
+      </div>
+    </div>
+  </div>
+  <div class="skip-btn-wrap">
+    <button class="btn-px" onclick="skipIntro()" style="font-size:.55rem;padding:9px 20px;letter-spacing:1px;box-shadow:4px 4px 0 var(--px3);">
+      &gt;&gt;&gt; SALTAR INTRO / CONTINUAR &lt;&lt;&lt;
+    </button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="screen-home">
+  <div style="font-family:'VT323';font-size:clamp(2.5rem,8vw,4.5rem);color:var(--px);text-shadow:4px 4px 0 var(--px3),8px 8px 0 rgba(255,107,0,.4);letter-spacing:4px;margin-bottom:4px;">LAW QUEST</div>
+  <div style="font-family:'Press Start 2P';font-size:clamp(.6rem,2vw,.85rem);color:var(--cyan);letter-spacing:2px;margin-bottom:6px;">EVALUACION CONSTITUCIONAL</div>
+  <div style="font-family:'VT323';font-size:1.1rem;color:#555;letter-spacing:3px;margin-bottom:16px;">COLOMBIA · CONSTITUCION 1991</div>
+
+  <div id="home-welcome" style="font-family:'VT323';font-size:1.1rem;color:var(--cyan);margin-bottom:10px;letter-spacing:1px;"></div>
+
+  <!-- AUTHORS BLOCK -->
+  <div class="px-box" style="max-width:460px;margin-bottom:12px;padding:12px 18px;">
+    <div style="font-family:'Press Start 2P';font-size:.45rem;color:#555;margin-bottom:8px;letter-spacing:2px;text-align:center;">&#9670; AUTORES DEL PROYECTO &#9670;</div>
+    <div style="font-family:'VT323';font-size:.95rem;color:var(--px);line-height:1.9;letter-spacing:1px;text-align:left;">
+      &#9658; MANUELA SUAREZ<br>
+      &#9658; JENNIFER QUIROZ<br>
+      &#9658; SANTIAGO HOYOS<br>
+      &#9658; SEBASTIAN HOYOS<br>
+      &#9658; SEBASTIAN QUERUBIN<br>
+      &#9658; ALEJANDRA CANO
+    </div>
+    <div style="font-family:'VT323';font-size:.8rem;color:#444;margin-top:6px;letter-spacing:2px;text-align:center;">DERECHO CONSTITUCIONAL &middot; 2026</div>
+  </div>
+
+  <div class="px-box" style="max-width:460px;margin-bottom:14px;">
+    <div style="font-family:'VT323';font-size:1rem;color:#666;line-height:1.9;margin-bottom:14px;">
+      &#9658; 3 MISIONES &nbsp;&#9670;&nbsp; 30 PUNTOS MAX<br>
+      &#9658; DEMUESTRA QUE ERES MAGISTRADO EXPERTO
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="btn-px" onclick="startGame()">&#9658; INICIAR</button>
+      <button class="btn-px cy" onclick="openManual()">? MANUAL</button>
+    </div>
+    <div style="font-family:'VT323';font-size:1.3rem;color:var(--px);margin-top:14px;" class="blink">— INSERT COIN —</div>
+  </div>
+
+  <div class="px-box" style="max-width:380px;padding:14px 18px;">
+    <div style="font-family:'VT323';font-size:.9rem;color:#444;margin-bottom:8px;letter-spacing:2px;">&#9670; CONTROL DE AUDIO &#9670;</div>
+    <div class="vol-row">&#127925; MUSICA <input type="range" min="0" max="100" value="50" oninput="setMusicVol(this.value)"> </div>
+    <div class="vol-row">&#128266; VOZ &nbsp;&nbsp;&nbsp;&nbsp;<input type="range" min="0" max="100" value="100" oninput="setVoiceVol(this.value)"> </div>
+  </div>
+</div>
+
+<!-- MISSION 1 -->
+<div class="screen" id="screen-m1">
+  <div class="px-box">
+    <div class="hud">
+      <span class="hud-miss">MISION 1 · INTRUSION</span>
+      <span class="hud-pts">PTS: <span id="m1-score">00</span></span>
+    </div>
+    <div style="font-family:'VT323';font-size:.9rem;color:#444;margin-bottom:8px;letter-spacing:2px;">CODIGO SECRETO — REVELA LOS 5 DIGITOS</div>
+    <div class="code-row" id="codeDisplay">
+      <div class="dslot hid" id="slot0">?</div>
+      <div class="dslot hid" id="slot1">?</div>
+      <div class="dslot hid" id="slot2">?</div>
+      <div class="dslot hid" id="slot3">?</div>
+      <div class="dslot hid" id="slot4">?</div>
+    </div>
+    <div class="px-sep"><span></span><span></span><span></span><span></span><span></span></div>
+
+    <div id="m1-qarea">
+      <div class="q-box" id="m1-q">CARGANDO...</div>
+      <div class="opts" id="m1-opts"></div>
+      <div class="fb" id="m1-fb"></div>
+    </div>
+
+    <div id="m1-earea" style="display:none">
+      <div style="font-family:'VT323';font-size:1rem;color:var(--cyan);margin-bottom:7px;letter-spacing:2px;">&#9658; INTRODUCE EL CODIGO</div>
+      <input id="codeInput" type="password" maxlength="5" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
+        style="font-family:'Press Start 2P';font-size:1.6rem;letter-spacing:10px;width:210px;text-align:center;
+        background:#000;border:3px solid var(--px);color:var(--px);padding:10px;outline:none;display:block;margin:0 auto 10px;">
+      <div class="fb" id="entry-fb"></div>
+      <button class="btn-px" onclick="checkCode()" style="margin-top:8px;">&#9670; VERIFICAR</button>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <div class="vol-row" style="font-size:.75rem;">&#127925;<input type="range" min="0" max="100" value="50" style="width:65px" oninput="setMusicVol(this.value)"></div>
+      <div class="vol-row" style="font-size:.75rem;">&#128266;<input type="range" min="0" max="100" value="100" style="width:65px" oninput="setVoiceVol(this.value)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MISSION 2 -->
+<div class="screen" id="screen-m2">
+  <div style="display:flex;gap:10px;align-items:flex-start;max-width:1000px;width:100%;flex-wrap:wrap;justify-content:center;">
+    <div class="px-box" style="flex:1;min-width:290px;max-width:640px;">
+      <div class="hud">
+        <span class="hud-miss">MISION 2 · MAGISTRADO</span>
+        <span class="hud-pts">PTS: <span id="m2-score">00</span></span>
+        <span class="hud-lvl" id="m2-lvl">LVL 1</span>
+      </div>
+      <div class="timer-wrap"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+      <div class="timer-n">&#9661; <span id="timerNum">30</span>s RESTANTES</div>
+      <div class="lls">
+        <button class="ll-btn" id="ll-5050" onclick="useLifeline('5050')">50:50</button>
+        <button class="ll-btn" id="ll-call" onclick="useLifeline('call')">&#9742; EXPERTO</button>
+        <button class="ll-btn" id="ll-pub"  onclick="useLifeline('pub')">&#9632;&#9632; PUBLICO</button>
+      </div>
+      <div class="q-box" id="m2-q">CARGANDO...</div>
+      <div class="opts" id="m2-opts"></div>
+      <div class="fb" id="m2-fb"></div>
+      <div style="margin-top:10px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <div class="vol-row" style="font-size:.75rem;">&#127925;<input type="range" min="0" max="100" value="50" style="width:65px" oninput="setMusicVol(this.value)"></div>
+        <div class="vol-row" style="font-size:.75rem;">&#128266;<input type="range" min="0" max="100" value="100" style="width:65px" oninput="setVoiceVol(this.value)"></div>
+      </div>
+    </div>
+    <div class="px-box" style="max-width:185px;min-width:150px;padding:12px;">
+      <div style="font-family:'VT323';font-size:.85rem;color:#444;margin-bottom:8px;letter-spacing:2px;">ESCALAFON</div>
+      <div class="prize-ladder" id="prizeLadder"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MISSION 3 -->
+<div class="screen" id="screen-m3">
+  <div class="px-box">
+    <div class="hud">
+      <span class="hud-miss">MISION 3 · LA GOLOSA</span>
+      <span class="hud-pts">PTS: <span id="m3-score">00</span></span>
+    </div>
+    <div style="font-family:'VT323';font-size:.9rem;color:#444;margin-bottom:8px;">AVANZA RESPONDIENDO CORRECTAMENTE — 10 CASILLAS</div>
+    <div style="position:relative;display:inline-block;margin-bottom:4px;">
+      <div class="hop-grid" id="hopGrid"></div>
+      <div class="ptoken" id="playerToken">&#128119;</div>
+    </div>
+    <div class="px-sep"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="q-box" id="m3-q">CARGANDO...</div>
+    <div class="opts" id="m3-opts"></div>
+    <div class="fb" id="m3-fb"></div>
+    <div style="margin-top:10px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <div class="vol-row" style="font-size:.75rem;">&#127925;<input type="range" min="0" max="100" value="50" style="width:65px" oninput="setMusicVol(this.value)"></div>
+      <div class="vol-row" style="font-size:.75rem;">&#128266;<input type="range" min="0" max="100" value="100" style="width:65px" oninput="setVoiceVol(this.value)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div class="screen" id="screen-report">
+  <div class="px-box" style="max-width:540px;">
+    <div style="font-family:'Press Start 2P';font-size:.7rem;color:var(--px);margin-bottom:10px;letter-spacing:2px;">GAME OVER · REPORTE FINAL</div>
+    <div class="px-sep"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="score-ring"><div class="big" id="finalScore">0</div><div class="of">/ 30</div></div>
+    <div class="rep-grid">
+      <div class="rep-stat"><div class="val" id="rep-m1">0</div><div class="lbl">MISION 1</div></div>
+      <div class="rep-stat"><div class="val" id="rep-m2">0</div><div class="lbl">MISION 2</div></div>
+      <div class="rep-stat"><div class="val" id="rep-m3">0</div><div class="lbl">MISION 3</div></div>
+      <div class="rep-stat"><div class="val" id="rep-pct">0%</div><div class="lbl">PORCENTAJE</div></div>
+    </div>
+    <div id="rep-badge" style="font-family:'VT323';font-size:1.1rem;padding:10px;border:2px solid var(--px);margin:8px 0;line-height:1.6;"></div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
+      <button class="btn-px" onclick="restartGame()">&#9658; JUGAR DE NUEVO</button>
+      <button class="btn-px cy" onclick="openManual()">? MANUAL</button>
+      <button class="btn-px" id="btn-report" onclick="downloadReportImage()" disabled
+        style="background:#333;color:#666;box-shadow:4px 4px 0 #111;cursor:not-allowed;"
+        title="Disponible al completar las 3 misiones">&#11015; DESCARGAR REPORTE (IMG)</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEACHER DASHBOARD -->
+<div class="screen" id="screen-teacher">
+  <div class="px-box" style="max-width:820px;">
+    <div style="font-family:'Press Start 2P';font-size:.65rem;color:var(--px);margin-bottom:6px;letter-spacing:2px;">&#127979; PANEL DOCENTE · LAW QUEST</div>
+    <div class="px-sep"><span></span><span></span><span></span><span></span><span></span></div>
+    <div style="font-family:'VT323';font-size:.85rem;color:#444;margin-bottom:10px;letter-spacing:2px;text-align:center;">
+      MANUELA SUAREZ · JENNIFER QUIROZ · SANTIAGO HOYOS · SEBASTIAN HOYOS · SEBASTIAN QUERUBIN · ALEJANDRA CANO
+    </div>
+    <div style="font-family:'VT323';font-size:1rem;color:var(--cyan);margin-bottom:12px;" id="teacher-count">0 ESTUDIANTES REGISTRADOS</div>
+    <div style="overflow-x:auto;max-height:55vh;overflow-y:auto;margin-bottom:12px;">
+      <table id="teacher-table" style="width:100%;border-collapse:collapse;font-family:'VT323';font-size:.85rem;">
+        <thead>
+          <tr style="background:#0a0a20;color:var(--px);border-bottom:2px solid var(--px);">
+            <th style="padding:6px 10px;text-align:left;">ESTUDIANTE</th>
+            <th style="padding:6px 10px;">M1</th>
+            <th style="padding:6px 10px;">M2</th>
+            <th style="padding:6px 10px;">M3</th>
+            <th style="padding:6px 10px;">TOTAL</th>
+            <th style="padding:6px 10px;">%</th>
+            <th style="padding:6px 10px;text-align:left;">RANGO</th>
+          </tr>
+        </thead>
+        <tbody id="teacher-tbody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn-px" onclick="downloadAllExcel()">&#11015; DESCARGAR EXCEL</button>
+      <button class="btn-px rd sm" onclick="clearAllReports()">&#128465; LIMPIAR DATOS</button>
+      <button class="btn-px cy" onclick="showScreen('role')">&#9658; VOLVER</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── STARS ── */
+(function(){
+  const c=document.getElementById('stars'),ctx=c.getContext('2d');
+  function resize(){c.width=innerWidth;c.height=innerHeight;draw();}
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    const cols=['#FFD700','#00FFFF','#FF00FF','#ffffff'];
+    for(let i=0;i<220;i++){
+      const x=Math.random()*c.width,y=Math.random()*c.height,r=Math.random()*1.3;
+      ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.fillStyle=cols[Math.floor(Math.random()*cols.length)];
+      ctx.globalAlpha=Math.random()*.7+.1;ctx.fill();ctx.globalAlpha=1;
+    }
+  }
+  window.addEventListener('resize',resize);resize();
+})();
+
+/* ── PIXEL EMBLEM (login screen) ── */
+(function(){
+  const c=document.getElementById('emblem');if(!c)return;
+  const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
+  const grid=[
+    '..XXXX..','.X....X.','X.CCCC.X','X.CCCC.X','X.CCCC.X',
+    '.X....X.','..XXXX..','...XX...','..XXXX..','..X..X..','..XXXX..','...XX...',
+  ];
+  const sc=c.width/grid[0].length;
+  grid.forEach((row,y)=>[...row].forEach((cell,x)=>{
+    if(cell==='X'){ctx.fillStyle='#FFD700';ctx.fillRect(x*sc,y*sc,sc,sc);}
+    else if(cell==='C'){ctx.fillStyle='#00FFFF';ctx.fillRect(x*sc,y*sc,sc,sc);}
+  }));
+})();
+
+/* ── AUDIO ── */
+let musicVol=.5,voiceVol=1,audioCtx=null,m2Interval=null,m1SuspInterval=null;
+function getAC(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function beep(freq,dur,type='square',vol=.25){
+  try{
+    const ac=getAC(),o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(vol*musicVol,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+dur);
+    o.start();o.stop(ac.currentTime+dur);
+  }catch(e){}
+}
+
+/* M1 suspense: dark pulsing drone + random tension pings */
+function startM1Suspense(){
+  stopM1Suspense();
+  let tick=0;
+  const drones=[55,58,55,52,55,50,55,52];
+  const pings=[220,196,233,174,208,185];
+  m1SuspInterval=setInterval(()=>{
+    const baseVol=0.17*musicVol;
+    // Low drone
+    beep(drones[tick%drones.length],1.1,'sine',baseVol);
+    // Occasional high ping
+    if(tick%3===0)beep(pings[tick%pings.length],.4,'triangle',baseVol*.6);
+    // Creepy mid hit every 4
+    if(tick%4===2)beep(110,.6,'sawtooth',baseVol*.5);
+    tick++;
+  },900);
+}
+function stopM1Suspense(){if(m1SuspInterval){clearInterval(m1SuspInterval);m1SuspInterval=null;}}
+function sfxOk(){[659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.12,'square',.35),i*70));}
+function sfxBad(){[330,220,165].forEach((f,i)=>setTimeout(()=>beep(f,.16,'sawtooth',.4),i*75));}
+function sfxCoin(){[800,1000,1200,1600,2000].forEach((f,i)=>setTimeout(()=>beep(f,.07,'square',.45),i*55));}
+function sfxWin(){
+  const n=[523,659,784,1047,1319,1568,2093,2637];
+  n.forEach((f,i)=>setTimeout(()=>beep(f,.16,'square',.4),i*100));
+  setTimeout(()=>n.forEach((f,i)=>setTimeout(()=>beep(f,.13,'square',.4),i*75)),n.length*110);
+}
+function sfxBoos(){for(let i=0;i<8;i++)setTimeout(()=>beep(80+Math.random()*40,.28,'sawtooth',.38),i*140);}
+function startM2Music(){
+  stopM2Music();
+  const p=[440,0,523,494,523,0,587,0,440,0,392,440,0,494,0,523];
+  let i=0;
+  m2Interval=setInterval(()=>{const f=p[i%p.length];if(f>0)beep(f,.1,'square',.18);i++;},260);
+}
+function stopM2Music(){if(m2Interval){clearInterval(m2Interval);m2Interval=null;}}
+function setMusicVol(v){
+  musicVol=v/100;
+  document.querySelectorAll('input[oninput*="setMusicVol"]').forEach(el=>el.value=v);
+  const l=document.getElementById('musicVolLbl');if(l)l.textContent=v;
+}
+function setVoiceVol(v){
+  voiceVol=v/100;
+  document.querySelectorAll('input[oninput*="setVoiceVol"]').forEach(el=>el.value=v);
+  const l=document.getElementById('voiceVolLbl');if(l)l.textContent=v;
+}
+function speak(txt){
+  if(!window.speechSynthesis)return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(txt);
+  u.lang='es-CO';u.volume=voiceVol;u.rate=.92;
+  speechSynthesis.speak(u);
+}
+
+/* ── 64-BIT CUTSCENE ── */
+function playCutscene(cb){
+  const cs=document.getElementById('cutscene');
+  const canvas=document.getElementById('csc');
+  const ctx=canvas.getContext('2d');
+  ctx.imageSmoothingEnabled=false;
+  cs.classList.add('active');
+  const W=640,H=360;
+  let frame=0,phase=0,done=false;
+
+  /* Pixel character 8-wide blocks */
+  function drawChar(cx,cy,wf,s){
+    s=s||7;
+    // Head
+    ctx.fillStyle='#FFCD94';ctx.fillRect(cx,cy,s*2,s*2);
+    // Hair
+    ctx.fillStyle='#3D1500';ctx.fillRect(cx,cy,s*2,s*.6);
+    // Eyes
+    ctx.fillStyle='#000';ctx.fillRect(cx+s*.5,cy+s*.7,s*.3,s*.3);ctx.fillRect(cx+s*1.2,cy+s*.7,s*.3,s*.3);
+    // Tie knot
+    ctx.fillStyle='#FFD700';ctx.fillRect(cx+s*.8,cy+s*.7,s*.4,s*.4);
+    // Suit
+    ctx.fillStyle='#1a1a7e';ctx.fillRect(cx-s*.5,cy+s*2,s*3,s*3.2);
+    // Shirt
+    ctx.fillStyle='#eee';ctx.fillRect(cx+s*.6,cy+s*2.1,s*.8,s*2.8);
+    // Tie
+    ctx.fillStyle='#FFD700';ctx.fillRect(cx+s*.75,cy+s*2.5,s*.5,s*2);
+    // Arms
+    ctx.fillStyle='#1a1a7e';
+    ctx.fillRect(cx-s*1,cy+s*2.1,s*.8,s*2.5);
+    ctx.fillRect(cx+s*2.2,cy+s*2.1,s*.8,s*2.5);
+    // Hands
+    ctx.fillStyle='#FFCD94';
+    ctx.fillRect(cx-s*1,cy+s*4.4,s*.8,s*.5);
+    ctx.fillRect(cx+s*2.2,cy+s*4.4,s*.8,s*.5);
+    // Legs walk cycle
+    const lo=wf%2===0?0:s*.5;
+    ctx.fillStyle='#111';
+    ctx.fillRect(cx+s*.1,cy+s*5.2,s*.9,s*2+lo);
+    ctx.fillRect(cx+s*1,cy+s*5.2,s*.9,s*2+(lo?0:s*.5));
+    // Shoes
+    ctx.fillStyle='#000';
+    ctx.fillRect(cx+s*.1-s*.2,cy+s*7.2+lo,s*1.2,s*.4);
+    ctx.fillRect(cx+s*1-s*.2,cy+s*7.2+(lo?0:s*.5),s*1.2,s*.4);
+    // Briefcase
+    if(wf>0){
+      ctx.fillStyle='#8B6914';ctx.fillRect(cx+s*2.5,cy+s*3.2,s*1.6,s*1.3);
+      ctx.fillStyle='#FFD700';ctx.fillRect(cx+s*2.5,cy+s*2.9,s*1.6,s*.3);
+      ctx.fillRect(cx+s*2.9,cy+s*2.8,s*.8,s*.35);
+    }
+  }
+
+  /* Stage background */
+  function drawStage(alpha){
+    // Dark audience
+    ctx.fillStyle='#080010';ctx.fillRect(0,0,W,H*.6);
+    // Stage floor
+    ctx.fillStyle='#3a0000';ctx.fillRect(0,H*.6,W,H*.4);
+    ctx.fillStyle='#5a1010';ctx.fillRect(0,H*.6,W,6);
+    // Giant screen
+    ctx.fillStyle='#000080';ctx.fillRect(W*.05,H*.04,W*.9,H*.52);
+    ctx.fillStyle='#00004a';ctx.fillRect(W*.07,H*.06,W*.86,H*.48);
+    // Screen glow
+    ctx.globalAlpha=.08*alpha;
+    ctx.fillStyle='#4444FF';ctx.fillRect(W*.05,H*.04,W*.9,H*.52);
+    ctx.globalAlpha=1;
+    // Screen content
+    if(alpha>.4){
+      ctx.globalAlpha=Math.min(1,(alpha-.4)*1.6);
+      ctx.fillStyle='#FFD700';
+      ctx.font='bold 30px "Press Start 2P",monospace';
+      ctx.textAlign='center';
+      ctx.fillText('¿QUIEN QUIERE',W/2,H*.24);
+      ctx.fillText('SER MAGISTRADO?',W/2,H*.36);
+      ctx.fillStyle='#00FFFF';
+      ctx.font='20px "VT323",monospace';
+      ctx.fillText('MISION 2 · CONSTITUCION COLOMBIANA 1991',W/2,H*.47);
+      ctx.globalAlpha=1;
+    }
+    // Spotlights
+    ctx.globalAlpha=.18*alpha;
+    let g=ctx.createRadialGradient(W*.25,H*.02,0,W*.25,H*.02,H*.7);
+    g.addColorStop(0,'#FFFFFF');g.addColorStop(1,'transparent');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    g=ctx.createRadialGradient(W*.75,H*.02,0,W*.75,H*.02,H*.7);
+    g.addColorStop(0,'#FFD700');g.addColorStop(1,'transparent');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha=1;
+    // Podium chair
+    ctx.fillStyle='#8B6914';ctx.fillRect(W*.42,H*.48,W*.16,H*.15);
+    ctx.fillStyle='#FFD700';ctx.fillRect(W*.42,H*.46,W*.16,H*.03);
+    // Audience pixel silhouettes
+    for(let i=0;i<18;i++){
+      const hx=30+i*34,hy=H*.4+Math.sin(i*.7)*8;
+      ctx.fillStyle='#111';
+      ctx.fillRect(hx,hy,18,22);
+      ctx.fillRect(hx+3,hy-10,12,12);
+    }
+  }
+
+  function drawLockPhase(f){
+    ctx.fillStyle='#000015';ctx.fillRect(0,0,W,H);
+    // Grid lines
+    ctx.strokeStyle='#0a0a30';ctx.lineWidth=1;
+    for(let i=0;i<W;i+=40){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,H);ctx.stroke();}
+    for(let i=0;i<H;i+=40){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(W,i);ctx.stroke();}
+    const lx=W/2,ly=H/2-20;
+    if(f<30){
+      // Closed lock
+      ctx.fillStyle='#777';ctx.fillRect(lx-32,ly-8,64,54);
+      ctx.fillStyle='#555';ctx.beginPath();ctx.arc(lx,ly-8,26,Math.PI,0);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#444';ctx.fillRect(lx-26,ly-8,52,20);
+      ctx.fillStyle='#333';ctx.fillRect(lx-9,ly+12,18,22);
+      ctx.fillStyle='#FFD700';ctx.fillRect(lx-5,ly+16,10,14);
+      // Key hole
+      ctx.fillStyle='#222';ctx.beginPath();ctx.arc(lx,ly+20,4,0,Math.PI*2);ctx.fill();
+      ctx.fillRect(lx-2,ly+20,4,10);
+    } else if(f<55){
+      // Shake
+      const shk=(Math.sin(f*.8)*6)|0;
+      ctx.save();ctx.translate(shk,Math.sin(f*.5)*3);
+      const flash=f%4<2?'#FFD700':'#FFA500';
+      ctx.fillStyle=flash;ctx.fillRect(lx-32,ly-8,64,54);
+      ctx.fillStyle='#FFA500';ctx.beginPath();ctx.arc(lx,ly-8,26,Math.PI,0);ctx.closePath();ctx.fill();
+      ctx.restore();
+      ctx.globalAlpha=(f-30)/25*.5;
+      ctx.fillStyle='#FFF';ctx.fillRect(0,0,W,H);
+      ctx.globalAlpha=1;
+    } else {
+      // Explode open
+      const t=(f-55)/50;
+      // Bright flash
+      ctx.globalAlpha=Math.max(0,1-t*3);ctx.fillStyle='#FFF';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;
+      // Particles
+      for(let i=0;i<24;i++){
+        const angle=(i/24)*Math.PI*2;
+        const dist=t*180;
+        const px2=lx+Math.cos(angle)*dist,py2=ly+Math.sin(angle)*dist;
+        const sz=Math.max(1,9*(1-t));
+        ctx.fillStyle=['#FFD700','#FFA500','#FF6B00','#FFF','#00FFFF','#FF00FF'][i%6];
+        ctx.fillRect(px2,py2,sz,sz);
+      }
+      // Check mark
+      ctx.globalAlpha=Math.min(1,t*2.5);
+      ctx.font='bold 90px monospace';ctx.fillStyle='#00FF41';ctx.textAlign='center';
+      ctx.fillText('OK!',lx,ly+35);
+      ctx.font='24px "Press Start 2P",monospace';
+      ctx.fillStyle='#FFD700';ctx.fillText('ACCESO CONCEDIDO',lx,ly+80);
+      ctx.globalAlpha=1;
+    }
+  }
+
+  function confetti(f){
+    const cc=['#FFD700','#FF00FF','#00FFFF','#FF6B00','#00FF41','#FF3333'];
+    for(let i=0;i<28;i++){
+      const x=(Math.sin(i*137.5+f*.04)*W/2+W/2+f*1.5)%W;
+      const y=(i*29+f*2.5)%H;
+      ctx.fillStyle=cc[i%cc.length];
+      ctx.fillRect(x,y,6,6);
+    }
+  }
+
+  function renderFrame(){
+    if(done)return;
+    frame++;
+    ctx.clearRect(0,0,W,H);
+
+    if(phase===0){
+      // Phase 0: Lock opening + character walking
+      const charX=Math.min(frame*7-60,W*.12);
+      const wf=Math.floor(frame/8)%2;
+      drawLockPhase(frame);
+      drawChar(charX,H*.42,wf,7);
+      if(frame>110){phase=1;frame=0;}
+
+    } else if(phase===1){
+      // Phase 1: Stage reveal + character walking to seat
+      const alpha=Math.min(1,frame/50);
+      drawStage(alpha);
+      const wf=Math.floor(frame/8)%2;
+      const cx=Math.min(W*.12+frame*6,W*.42);
+      drawChar(cx,H*.465,wf,7);
+      if(frame>70){
+        // Seated + confetti
+        drawChar(W*.42,H*.465,0,7);
+        confetti(frame);
+      }
+      if(frame>140){phase=2;frame=0;}
+
+    } else {
+      // Phase 2: Final flash out
+      drawStage(1);
+      drawChar(W*.42,H*.465,0,7);
+      confetti(frame);
+      ctx.globalAlpha=Math.min(1,frame/18);
+      ctx.fillStyle='#FFD700';ctx.fillRect(0,0,W,H);
+      ctx.globalAlpha=1;
+      if(frame>22){done=true;cs.classList.remove('active');cb();}
+    }
+
+    // Scanlines
+    ctx.globalAlpha=.07;
+    for(let y=0;y<H;y+=3){ctx.fillStyle='#000';ctx.fillRect(0,y,W,1);}
+    ctx.globalAlpha=1;
+    // Corner pixels
+    ctx.fillStyle='#FFD700';
+    [[0,0],[W-6,0],[0,H-6],[W-6,H-6]].forEach(([x,y])=>ctx.fillRect(x,y,6,6));
+
+    if(!done)requestAnimationFrame(renderFrame);
+  }
+  requestAnimationFrame(renderFrame);
+}
+
+/* ── SCREENS ── */
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
+function openManual(){document.getElementById('manualModal').classList.add('open');}
+function closeManual(){document.getElementById('manualModal').classList.remove('open');}
+function showNotif(msg,dur=3000){const n=document.getElementById('notif');n.textContent=msg;n.classList.add('show');setTimeout(()=>n.classList.remove('show'),dur);}
+
+/* ── REPORTS STORE ── */
+let allReports = JSON.parse(localStorage.getItem('lq_reports')||'[]');
+function saveReport(r){ allReports.push(r); try{localStorage.setItem('lq_reports',JSON.stringify(allReports));}catch(e){} }
+
+/* ── ROLE SELECTION ── */
+let currentRole = 'student';
+function selectRole(role){
+  sfxCoin();
+  if(role==='teacher'){
+    document.getElementById('teacherModal').classList.add('open');
+    document.getElementById('teacherPass').value='';
+    hidFBTeacher();
+    setTimeout(()=>document.getElementById('teacherPass').focus(),200);
+  } else {
+    currentRole='student';
+    showScreen('login');
+    document.getElementById('playerName').value='';
+    setTimeout(()=>document.getElementById('playerName').focus(),200);
+  }
+}
+function hidFBTeacher(){const el=document.getElementById('teacher-fb');if(el)el.className='fb';}
+function checkTeacherPass(){
+  const val=document.getElementById('teacherPass').value.trim();
+  if(val==='1991'){
+    sfxWin();
+    document.getElementById('teacherModal').classList.remove('open');
+    currentRole='teacher';
+    renderTeacherTable();
+    showScreen('teacher');
+  } else {
+    sfxBad();
+    const el=document.getElementById('teacher-fb');
+    el.textContent='[X] CLAVE INCORRECTA';el.className='fb bad show';
+    document.getElementById('teacherPass').value='';
+  }
+}
+function closeTeacherModal(){
+  document.getElementById('teacherModal').classList.remove('open');
+}
+
+function getBadgeForScore(tot){
+  if(tot>=25) return 'MAGISTRADO EXPERTO';
+  if(tot>=20) return 'LEGISLADOR COMPETENTE';
+  if(tot>=15) return 'FUNCIONARIO EN FORMACION';
+  return 'REQUIERE REFORZAR';
+}
+
+function renderTeacherTable(){
+  const tbody=document.getElementById('teacher-tbody');
+  const count=document.getElementById('teacher-count');
+  tbody.innerHTML='';
+  count.textContent=allReports.length+' ESTUDIANTE'+(allReports.length!==1?'S':'')+' REGISTRADO'+(allReports.length!==1?'S':'');
+  if(allReports.length===0){
+    tbody.innerHTML='<tr><td colspan="7" style="padding:16px;color:#333;text-align:center;font-family:VT323;">— SIN REGISTROS AUN —</td></tr>';
+    return;
+  }
+  allReports.forEach((r,i)=>{
+    const tot=r.m1+r.m2+r.m3;
+    const pct=Math.round(tot/30*100);
+    const badge=getBadgeForScore(tot);
+    const badgeCol=tot>=25?'#00FF41':tot>=20?'#FFD700':tot>=15?'#FFA500':'#FF3333';
+    const tr=document.createElement('tr');
+    tr.style.borderBottom='1px solid #1a1a40';
+    tr.style.background=i%2===0?'#050510':'#08081a';
+    tr.innerHTML=`
+      <td style="padding:5px 10px;color:var(--cyan);">${r.name}</td>
+      <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m1}</td>
+      <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m2}</td>
+      <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m3}</td>
+      <td style="padding:5px 10px;text-align:center;font-weight:bold;color:var(--px);">${tot}</td>
+      <td style="padding:5px 10px;text-align:center;color:#888;">${pct}%</td>
+      <td style="padding:5px 10px;color:${badgeCol};font-size:.8rem;">${badge}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function clearAllReports(){
+  if(!confirm('¿Borrar todos los reportes?')) return;
+  allReports=[];
+  try{localStorage.removeItem('lq_reports');}catch(e){}
+  renderTeacherTable();
+  showNotif('DATOS BORRADOS',2500);
+}
+
+/* ── EXCEL DOWNLOAD (all reports) ── */
+function downloadAllExcel(){
+  if(allReports.length===0){showNotif('SIN DATOS PARA EXPORTAR',3000);return;}
+  // Build CSV with BOM that Excel opens correctly
+  let csv='\uFEFF';
+  csv+='LAW QUEST — REPORTE DOCENTE\n';
+  csv+='Autores: Manuela Suarez, Jennifer Quiroz, Santiago Hoyos, Sebastian Hoyos, Sebastian Querubin, Alejandra Cano\n';
+  csv+='Fecha exportacion: '+new Date().toLocaleString('es-CO')+'\n\n';
+  csv+='Estudiante,Mision 1,Mision 2,Mision 3,Total,Porcentaje,Rango\n';
+  allReports.forEach(r=>{
+    const tot=r.m1+r.m2+r.m3;
+    const pct=Math.round(tot/30*100);
+    const badge=getBadgeForScore(tot);
+    csv+=`"${r.name}",${r.m1},${r.m2},${r.m3},${tot},${pct}%,"${badge}"\n`;
+  });
+  // Stats
+  const totals=allReports.map(r=>r.m1+r.m2+r.m3);
+  const avg=(totals.reduce((a,b)=>a+b,0)/totals.length).toFixed(1);
+  const mx=Math.max(...totals), mn=Math.min(...totals);
+  csv+=`\nESTADISTICAS\nPromedio,${avg}\nMaximo,${mx}\nMinimo,${mn}\nTotal estudiantes,${allReports.length}\n`;
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='LawQuest_ReporteDocente_'+Date.now()+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  showNotif('EXCEL DESCARGADO',3000);
+}
+
+/* ── LOGIN ── */
+let playerName='AGENTE';
+/* ── INTRO NARRATOR (female voice) ── */
+const INTRO_TEXT = "Hace mucho tiempo, en una república muy, muy lejana... Es un periodo de profunda incertidumbre. El país Colombia, devastado durante décadas por las fuerzas oscuras de la violencia, la exclusión y un viejo decreto de Estado de Sitio que parecía eterno, se encontraba al borde del colapso bajo el yugo del antiguo Imperio de 1886. Aquel viejo orden, centralista y rígido, ahogaba las voces de las diversas provincias y clanes que habitaban sus ricas cordilleras y selvas. Pero la esperanza nunca muere en los corazones de los rebeldes. Impulsados por una poderosa alianza de jóvenes estudiantes, indígenas, minorías y ciudadanos de a pie, se desató un movimiento sin precedentes: la Séptima Papeleta. De ese choque cósmico de ideas nació un nuevo testamento de equilibrio: La Constitución de 1991. Una guía mística diseñada para descentralizar el poder, reconocer la diversidad de todas las especies y culturas del territorio, y entregar a cada ciudadano un sable de luz conceptual: el Estado Social de Derecho y las acciones de protección de los Derechos Fundamentales.";
+
+let introFemVoice = null;
+
+function loadFemVoice(){
+  if(!window.speechSynthesis) return;
+  const voices = speechSynthesis.getVoices();
+  const femaleNames = ['paulina','sabina','helena','mónica','monica','google español','google spanish','female','mujer','laura','lucia','lucía','esperanza','jorge'];
+  // First try: spanish voice with female hint in name
+  let found = voices.find(v => /es[-_]/i.test(v.lang) && femaleNames.some(n => v.name.toLowerCase().includes(n)));
+  // Second try: any spanish voice (prefer es-CO, es-ES, es-MX)
+  if(!found) found = voices.find(v => v.lang === 'es-CO');
+  if(!found) found = voices.find(v => v.lang === 'es-ES');
+  if(!found) found = voices.find(v => v.lang === 'es-MX');
+  if(!found) found = voices.find(v => /^es/i.test(v.lang));
+  introFemVoice = found || null;
+}
+
+function narrateIntro(){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  loadFemVoice();
+  const u = new SpeechSynthesisUtterance(INTRO_TEXT);
+  u.lang = 'es-CO';
+  u.rate = 0.78;
+  u.pitch = 1.15;
+  u.volume = voiceVol;
+  if(introFemVoice) u.voice = introFemVoice;
+  speechSynthesis.speak(u);
+}
+
+function loginEnter(){
+  const inp=document.getElementById('playerName');
+  const name=(inp.value.trim().toUpperCase()||'AGENTE').substring(0,20);
+  playerName=name;
+  sfxCoin();
+  showScreen('intro');
+  // Start narration after a brief delay to allow screen transition
+  setTimeout(()=>{
+    if(speechSynthesis.getVoices().length === 0){
+      speechSynthesis.addEventListener('voiceschanged', narrateIntro, {once:true});
+    } else {
+      narrateIntro();
+    }
+  }, 600);
+}
+
+/* ── INTRO / CRAWL ── */
+function skipIntro(){
+  // Stop narrator immediately
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  // Pause crawl animation
+  const cc=document.querySelector('.crawl-content');
+  if(cc){cc.style.animationPlayState='paused';}
+  const hw=document.getElementById('home-welcome');
+  if(hw)hw.textContent='BIENVENIDO, AGENTE '+playerName;
+  showScreen('home');
+}
+
+/* ── QUESTIONS ── */
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+const BM1=shuffle([
+  {q:"¿Qué artículo establece que Colombia es un Estado Social de Derecho organizado en forma de república unitaria?",o:["Art. 113","Art. 86","Art. 1","Art. 152"],a:2},
+  {q:"¿Cuál sentencia reitera firmemente el principio de separación de poderes del art. 113 de la Carta Política?",o:["C-025/1993","C-138/2025","C-379/2016","C-180/1994"],a:1},
+  {q:"Según la axiología constitucional colombiana, ¿qué sitúa el trabajo y la solidaridad al centro del poder?",o:["La descentralización administrativa","La soberanía parlamentaria","El Estado Social de Derecho y la dignidad humana","La cláusula general de competencia"],a:2},
+  {q:"El art. 113 define una separación de poderes no rígida. ¿Cómo la define la Corte Constitucional?",o:["Subordinación al Ejecutivo","Colaboración armónica y frenos y contrapesos","División absoluta e incomunicada","Centralización normativa preferente"],a:1},
+  {q:"¿Qué corporación de la Rama Judicial es el máximo tribunal de la Jurisdicción Ordinaria en Colombia?",o:["Consejo de Estado","Corte Suprema de Justicia","Corte Constitucional","Comisión Nacional de Disciplina Judicial"],a:1},
+  {q:"¿Qué organismo autónomo adelanta procesos disciplinarios contra los servidores públicos de la administración?",o:["Contraloría General","Consejo Superior de la Judicatura","Procuraduría General de la Nación","Fiscalía General"],a:2},
+  {q:"¿Qué tribunal ocupa la máxima jerarquía dentro de la Jurisdicción Contencioso-Administrativa?",o:["Tribunal Administrativo de Cundinamarca","Corte Suprema de Justicia","Consejo de Estado","Consejo Superior de la Judicatura"],a:2},
+  {q:"¿Qué mecanismo de control político más drástico puede ejercer el Congreso contra los ministros?",o:["Acción pública de inconstitucionalidad","Moción de censura","Pérdida de investidura","Objeción por inconveniencia"],a:1},
+  {q:"¿Qué sentencia de 2016 declaró inconstitucional una reforma judicial por sustituir la Constitución?",o:["C-551/2003","C-285/2016","C-1040/2005","C-246/2004"],a:1},
+  {q:"¿Qué instituciones conforman, junto al Presidente y ministros, el Gobierno Nacional en el nivel central?",o:["Corte Suprema y Consejo de Estado","Comisiones constitucionales del Congreso","Superintendencias, establecimientos públicos y empresas industriales del Estado","Organismos de control fiscal"],a:2},
+]);
+
+const BM2=shuffle([
+  {q:"¿Qué norma complementa a la Constitución en la regulación del reglamento interno del Congreso?",o:["Ley 134/1994","Ley 5ª/1992","Ley 1757/2015","Ley 1806/2016"],a:1,lv:1},
+  {q:"¿Qué rango de artículos de la Constitución regula el trámite legislativo en Colombia?",o:["Arts. 1-10","Arts. 86-112","Arts. 150-168","Arts. 374-380"],a:2,lv:1},
+  {q:"¿Cuál actor NO está legitimado por el art. 154 para presentar proyectos de ley?",o:["Los Congresistas","Las Altas Cortes en materia de justicia","El Alcalde Mayor de Bogotá","Ciudadanos con el porcentaje del censo requerido"],a:2,lv:1},
+  {q:"¿Qué principios deben garantizarse para aprobar un proyecto de ley ordinaria en cada célula legislativa?",o:["Publicidad y sanción ejecutiva previa","Quórum, anuncios previos, identidad flexible y consecutividad","Solo debate en comisiones conjuntas","Consulta previa judicial vinculante"],a:1,lv:1},
+  {q:"¿Qué mayoría y límite temporal exige la aprobación de una Ley Estatutaria?",o:["Mayoría simple en dos periodos legislativos","Mayoría calificada en tres debates","Mayoría absoluta en un solo periodo legislativo","Sin límite de legislatura"],a:2,lv:2},
+  {q:"¿Qué materias están reservadas para las Leyes Orgánicas (Art. 151 C.P.)?",o:["Derechos fundamentales y participación","Comercio exterior y aranceles","Estructura del Congreso, presupuesto y plan de desarrollo","Honores públicos y amnistías"],a:2,lv:2},
+  {q:"¿Cómo se denominan las leyes mediante las cuales el Congreso fija parámetros económicos y fiscales al Ejecutivo?",o:["Leyes Estatutarias","Leyes de Presupuesto General","Leyes Marco","Leyes Ordinarias de Código"],a:2,lv:2},
+  {q:"¿Cuáles son los tres mecanismos oficiales para reformar la Constitución en Colombia?",o:["Acto Legislativo, Referendo y Asamblea Constituyente","Plebiscito, Cabildo Abierto y Consulta Popular","Decreto, Sentencia y Ley Orgánica","Moción de Censura, Voto de Opinión y Referendo Derogatorio"],a:0,lv:2},
+  {q:"¿Cuántos debates debe surtir un Acto Legislativo tramitado en el Congreso?",o:["Cuatro debates en un solo periodo","Ocho debates en dos periodos ordinarios consecutivos","Seis debates en comisiones terceras","Diez debates sin consecutividad"],a:1,lv:3},
+  {q:"¿Qué doctrina estructuró la Corte Constitucional para controlar que las reformas no destruyan la esencia de la Carta?",o:["Bloque de constitucionalidad laxo","La doctrina de la sustitución de la Constitución","Supremacía ejecutiva reglamentaria","Test de ponderación económica"],a:1,lv:3},
+]);
+
+const BM3=shuffle([
+  {q:"¿Qué modelo democrático de 1991 transformó la ciudadanía de actor pasivo a protagonista directo?",o:["Democracia representativa gremial","Democracia participativa","Régimen parlamentario","Estado de sitio permanente"],a:1},
+  {q:"¿Cuál es la Ley Estatutaria vigente que regula la participación ciudadana en Colombia?",o:["Ley 134/1994","Ley 1475/2011","Ley 1757/2015","Ley 1806/2016"],a:2},
+  {q:"¿Qué pensador inspira la concepción de soberanía popular directa en los mecanismos de participación?",o:["Kelsen y el orden piramidal","Rousseau y la soberanía popular directa","Tocqueville y los contrapesos","Schmitt y el estado de excepción"],a:1},
+  {q:"¿Cuál antecedente del siglo XX otorgó por primera vez el voto a las mujeres en Colombia?",o:["La Asamblea Constituyente de 1991","El Plebiscito de 1957","La Séptima Papeleta","El Referendo Derogatorio"],a:1},
+  {q:"¿Cómo define la Ley 1757/2015 al Referendo?",o:["Consulta solo por alcaldes","Mecanismo por el cual el pueblo aprueba o rechaza una norma","Decisión sobre fronteras nacionales","Citación forzosa a ministros"],a:1},
+  {q:"¿Qué porcentaje mínimo de firmas del censo electoral se requiere para proponer un referendo?",o:["1% de las firmas","5% del censo electoral","13% de los votantes","Un tercio de las planillas"],a:1},
+  {q:"¿En qué consiste el Plebiscito como mecanismo de participación ciudadana?",o:["Iniciativa popular para derogar leyes","Consulta política del Presidente al pueblo sobre una decisión de gobierno","Reunión pública en los concejos","Demanda contra un acto legislativo"],a:1},
+  {q:"¿Qué órgano debe revisar la constitucionalidad de la convocatoria de un referendo antes de la votación?",o:["Consejo de Estado","Registraduría Nacional","Corte Constitucional","Consejo Superior de la Judicatura"],a:2},
+  {q:"¿Qué umbral de participación se fijó para el Plebiscito por la Paz de 2016 (Ley 1806/2016)?",o:["Umbral del 25%","13% del censo electoral","50% de votos afirmativos","Sin umbral mínimo"],a:1},
+  {q:"¿Sobre qué mandatarios puede la ciudadanía ejercer la Revocatoria del Mandato?",o:["Únicamente el Presidente y Ministros","Exclusivamente Alcaldes y Gobernadores","Congresistas, Diputados y Concejales","Magistrados de las Altas Cortes"],a:1},
+]);
+
+/* ── GAME STATE ── */
+const G={m1Score:0,m2Score:0,m3Score:0,m1Pool:[],m1Qi:0,secretCode:[],revD:[],curDi:0,m1Errors:[],m2Pool:[],m2Qi:0,m2LL:{},timerInt:null,timerS:30,m3Pool:[],m3Qi:0,m3Pos:-1};
+
+/* ── START ── */
+function startGame(){
+  sfxCoin();
+  G.secretCode=Array.from({length:5},()=>(Math.random()*10)|0);
+  G.revD=[false,false,false,false,false];G.curDi=0;
+  G.m1Score=0;G.m2Score=0;G.m3Score=0;
+  G.m1Pool=shuffle([...BM1]);G.m1Qi=0;
+  G.m1Errors=[false,false,false,false,false];
+  G.m2Pool=shuffle([...BM2]);G.m2Qi=0;G.m2LL={};
+  G.m3Pool=shuffle([...BM3]);G.m3Qi=0;G.m3Pos=-1;
+  for(let i=0;i<5;i++){const s=document.getElementById('slot'+i);s.textContent='?';s.className='dslot hid';}
+  document.getElementById('m1-earea').style.display='none';
+  document.getElementById('m1-qarea').style.display='';
+  showScreen('m1');buildM1Q();startM1Suspense();
+}
+
+/* ── M1 ── */
+function buildM1Q(){
+  const q=G.m1Pool[G.m1Qi%G.m1Pool.length];
+  document.getElementById('m1-q').textContent=q.q;
+  const c=document.getElementById('m1-opts');c.innerHTML='';
+  ['A','B','C','D'].forEach((l,i)=>{
+    const b=document.createElement('button');b.className='opt-btn';
+    b.innerHTML=`<span class="opt-letter">${l}</span>${q.o[i]}`;
+    b.onclick=()=>ansM1(i,q.a);c.appendChild(b);
+  });
+  hidFB('m1');setTimeout(()=>speak(q.q),400);
+}
+function ansM1(ch,cor){
+  const btns=document.querySelectorAll('#m1-opts .opt-btn');btns.forEach(b=>b.disabled=true);
+  if(ch===cor){
+    const idx=G.curDi;
+    const pts = G.m1Errors[idx] ? 1 : 2; // 2 pts si nunca falló este dígito, 1 pt si ya erró
+    btns[ch].classList.add('correct');
+    showFB('m1','[OK] CORRECTO! DIGITO REVELADO +'+pts+' PT'+(pts>1?'S':''),'ok');sfxOk();
+    G.m1Score+=pts;document.getElementById('m1-score').textContent=String(G.m1Score).padStart(2,'0');
+    G.revD[idx]=true;
+    const sl=document.getElementById('slot'+idx);sl.textContent=G.secretCode[idx];sl.className='dslot rev';
+    G.curDi++;
+    if(G.curDi>=5){setTimeout(()=>{document.getElementById('m1-qarea').style.display='none';document.getElementById('m1-earea').style.display='';document.getElementById('codeInput').value='';hidFB('entry');},1500);}
+    else{setTimeout(()=>{G.m1Qi++;buildM1Q();},1600);}
+  } else {
+    const idx=G.curDi;
+    G.m1Errors[idx]=true; // marcar que este dígito tuvo error
+    btns[ch].classList.add('wrong');btns[cor].classList.add('correct');
+    showFB('m1','[X] INCORRECTO — NUEVA PREGUNTA PARA RECUPERAR DIGITO','bad');sfxBad();
+    setTimeout(()=>{G.m1Qi++;buildM1Q();},1900);
+  }
+}
+function checkCode(){
+  const inp=document.getElementById('codeInput').value.trim();
+  if(inp.length!==5){showFB('entry','INTRODUCE LOS 5 DIGITOS','bad');return;}
+  let ok=true;
+  for(let i=0;i<5;i++){
+    if(inp[i]!==String(G.secretCode[i])){ok=false;const sl=document.getElementById('slot'+i);sl.className='dslot bad';setTimeout(()=>{sl.className='dslot rev';},700);}
+  }
+  if(ok){
+    showFB('entry','[OK] CODIGO CORRECTO! ACCESO CONCEDIDO!','ok');sfxWin();
+    setTimeout(()=>{stopM1Suspense();showNotif('CARGANDO MISION 2...',4000);playCutscene(()=>{buildM2Prize();loadM2Q();startM2Music();showScreen('m2');});},1600);
+  } else {
+    sfxBad();
+    const fw=[...inp].findIndex((d,i)=>d!==String(G.secretCode[i]));
+    G.curDi=fw;G.revD[fw]=false;
+    G.m1Errors[fw]=true; // falló en la entrada del código también
+    const sl=document.getElementById('slot'+fw);sl.textContent='?';sl.className='dslot hid';
+    showFB('entry','[X] DIGITO INCORRECTO — RESPONDE PARA RECUPERARLO','bad');
+    setTimeout(()=>{document.getElementById('m1-earea').style.display='none';document.getElementById('m1-qarea').style.display='';G.m1Qi++;buildM1Q();},1900);
+  }
+}
+
+/* ── M2 ── */
+function buildM2Prize(){
+  const l=document.getElementById('prizeLadder');l.innerHTML='';
+  for(let i=9;i>=0;i--){
+    const safe=i===3||i===7;
+    const r=document.createElement('div');r.className='prize-row'+(safe?' safe':'');r.id='prize-row-'+i;
+    r.innerHTML=`<span>P.${i+1}</span><span>${safe?'[S] ':''} 1pt</span>`;l.appendChild(r);
+  }
+}
+function updPrize(idx){
+  document.querySelectorAll('.prize-row').forEach((r,ri)=>{
+    r.classList.remove('cur','done');
+    const qi=9-ri;
+    if(qi===idx)r.classList.add('cur');else if(qi<idx)r.classList.add('done');
+  });
+}
+function loadM2Q(){
+  clearInterval(G.timerInt);
+  const idx=G.m2Qi;if(idx>=G.m2Pool.length){endM2();return;}
+  updPrize(idx);
+  const lvls=['LVL 1','LVL 1','LVL 1','LVL 1','LVL 2','LVL 2','LVL 2','LVL 2','LVL 3','LVL 3'];
+  document.getElementById('m2-lvl').textContent=lvls[Math.min(idx,9)];
+  const q=G.m2Pool[idx];
+  document.getElementById('m2-q').textContent=q.q;
+  const c=document.getElementById('m2-opts');c.innerHTML='';
+  ['A','B','C','D'].forEach((l,i)=>{
+    const b=document.createElement('button');b.className='opt-btn';b.id='m2o'+i;
+    b.innerHTML=`<span class="opt-letter">${l}</span>${q.o[i]}`;
+    b.onclick=()=>ansM2(i,q.a);c.appendChild(b);
+  });
+  hidFB('m2');
+  ['5050','call','pub'].forEach(ll=>document.getElementById('ll-'+ll).disabled=!!G.m2LL[ll]);
+  G.timerS=30;document.getElementById('timerNum').textContent=30;document.getElementById('timerFill').style.width='100%';
+  G.timerInt=setInterval(()=>{
+    G.timerS--;document.getElementById('timerNum').textContent=G.timerS;
+    document.getElementById('timerFill').style.width=(G.timerS/30*100)+'%';
+    if(G.timerS<=5)beep(880,.07,'square',.25);
+    if(G.timerS<=0){clearInterval(G.timerInt);tUpM2();}
+  },1000);
+  setTimeout(()=>speak(q.q),400);
+}
+function ansM2(ch,cor){
+  clearInterval(G.timerInt);
+  document.querySelectorAll('#m2-opts .opt-btn').forEach(b=>b.disabled=true);
+  if(ch===cor){
+    document.querySelectorAll('#m2-opts .opt-btn')[ch].classList.add('correct');
+    showFB('m2','[OK] CORRECTO! +1 PT','ok');sfxOk();
+    G.m2Score++;document.getElementById('m2-score').textContent=String(G.m2Score).padStart(2,'0');
+    G.m2Qi++;if(G.m2Qi>=10)setTimeout(()=>endM2(),1500);else setTimeout(()=>loadM2Q(),1600);
+  } else {
+    document.querySelectorAll('#m2-opts .opt-btn')[ch].classList.add('wrong');
+    document.querySelectorAll('#m2-opts .opt-btn')[cor].classList.add('correct');
+    showFB('m2','[X] INCORRECTO','bad');sfxBad();
+    G.m2Qi++;setTimeout(()=>{if(G.m2Qi>=10)endM2();else loadM2Q();},1900);
+  }
+}
+function tUpM2(){
+  showFB('m2','[!] TIEMPO AGOTADO!','bad');sfxBad();
+  const q=G.m2Pool[G.m2Qi];
+  document.querySelectorAll('#m2-opts .opt-btn').forEach((b,i)=>{b.disabled=true;if(i===q.a)b.classList.add('correct');});
+  G.m2Qi++;setTimeout(()=>{if(G.m2Qi>=10)endM2();else loadM2Q();},1900);
+}
+function useLifeline(type){
+  G.m2LL[type]=true;document.getElementById('ll-'+type).disabled=true;
+  const q=G.m2Pool[G.m2Qi];
+  if(type==='5050'){
+    shuffle([0,1,2,3].filter(i=>i!==q.a)).slice(0,2).forEach(i=>{const b=document.getElementById('m2o'+i);if(b){b.style.opacity='.12';b.disabled=true;}});
+    showNotif('50:50 — DOS OPCIONES ELIMINADAS');
+  } else if(type==='call'){
+    showNotif('EXPERTO: LA OPCION CORRECTA ES '+'ABCD'[q.a]);speak('El experto dice que la opcion correcta es '+['A','B','C','D'][q.a]);
+  } else {
+    /* PUBLIC — correct answer gets 60–80%, rest split the remainder */
+    const correctPct=60+Math.floor(Math.random()*21); // 60–80
+    const rem=100-correctPct;
+    const wrongIdxs=[0,1,2,3].filter(i=>i!==q.a);
+    // Random split of remainder among 3 wrong options
+    let splits=[Math.floor(rem*.4),Math.floor(rem*.35)];
+    splits.push(rem-splits[0]-splits[1]);
+    shuffle(splits);
+    const pcts=[0,0,0,0];
+    pcts[q.a]=correctPct;
+    wrongIdxs.forEach((wi,k)=>pcts[wi]=splits[k]);
+    const letters=['A','B','C','D'];
+    const statsLine=letters.map((l,i)=>`${l}=${pcts[i]}%`).join(' ');
+    const winnerLetter=letters[q.a];
+    const narratorMsg=`El Narrador informa: Tras consultar al Senado Galactico, la opcion ${winnerLetter} lidera con un ${correctPct}% de los votos.`;
+    // Show in feedback panel
+    const fb=document.getElementById('m2-fb');
+    fb.textContent=narratorMsg;fb.className='fb ok show';
+    showNotif('PUBLICO: '+statsLine,5000);
+    speak(narratorMsg);
+  }
+}
+function endM2(){
+  stopM2Music();
+  sfxWin();
+  // Show victory overlay
+  const ov=document.getElementById('m2-victory');
+  const ptsEl=document.getElementById('vic-m2-pts');
+  ptsEl.textContent='★ '+G.m2Score+' / 10 PUNTOS ★';
+  ov.classList.add('active');
+  // Start particle canvas
+  startVictoryParticles();
+  // After 3.5s transition to M3
+  setTimeout(()=>{
+    stopVictoryParticles();
+    ov.classList.remove('active');
+    buildHop();showScreen('m3');loadM3Q();
+  },3500);
+}
+
+let vicAnimId=null;
+function startVictoryParticles(){
+  const cv=document.getElementById('m2-vic-canvas');
+  cv.width=innerWidth;cv.height=innerHeight;
+  const ctx=cv.getContext('2d');
+  const cols=['#FFD700','#FFA500','#FF00FF','#00FFFF','#00FF41','#FF3333','#ffffff'];
+  const particles=[];
+  for(let i=0;i<120;i++){
+    particles.push({
+      x:Math.random()*cv.width,
+      y:Math.random()*cv.height-cv.height,
+      vx:(Math.random()-.5)*4,
+      vy:Math.random()*4+2,
+      size:Math.random()*10+4,
+      col:cols[Math.floor(Math.random()*cols.length)],
+      spin:Math.random()*0.3-.15,
+      angle:Math.random()*Math.PI*2,
+      shape:Math.floor(Math.random()*3) // 0=rect 1=circle 2=star
+    });
+  }
+  function frame(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    particles.forEach(p=>{
+      p.y+=p.vy; p.x+=p.vx; p.angle+=p.spin;
+      if(p.y>cv.height){p.y=-20;p.x=Math.random()*cv.width;}
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle);
+      ctx.fillStyle=p.col;ctx.globalAlpha=0.85;
+      if(p.shape===0){ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.5);}
+      else if(p.shape===1){ctx.beginPath();ctx.arc(0,0,p.size/2,0,Math.PI*2);ctx.fill();}
+      else{
+        // star
+        ctx.beginPath();
+        for(let s=0;s<5;s++){
+          const a=((s*2-0.5)/5)*Math.PI*2;
+          const a2=((s*2+0.5)/5)*Math.PI*2;
+          ctx.lineTo(Math.cos(a)*p.size/2,Math.sin(a)*p.size/2);
+          ctx.lineTo(Math.cos(a2)*p.size/4,Math.sin(a2)*p.size/4);
+        }
+        ctx.closePath();ctx.fill();
+      }
+      ctx.restore();
+    });
+    vicAnimId=requestAnimationFrame(frame);
+  }
+  frame();
+  // Big pixel flash
+  ctx.fillStyle='#FFD700';ctx.globalAlpha=0.15;ctx.fillRect(0,0,cv.width,cv.height);ctx.globalAlpha=1;
+}
+function stopVictoryParticles(){
+  if(vicAnimId){cancelAnimationFrame(vicAnimId);vicAnimId=null;}
+  const cv=document.getElementById('m2-vic-canvas');
+  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+}
+
+/* ── M3 ── */
+const HOP=[{c:10,col:1,row:0},{c:9,col:0,row:1},{c:8,col:2,row:1},{c:7,col:1,row:2},{c:6,col:0,row:3},{c:5,col:2,row:3},{c:4,col:1,row:4},{c:3,col:0,row:5},{c:2,col:2,row:5},{c:1,col:1,row:6}];
+function buildHop(){
+  const g=document.getElementById('hopGrid');g.innerHTML='';g.style.gridTemplateRows='repeat(7,56px)';
+  for(let r=0;r<7;r++)for(let c=0;c<3;c++){
+    const d=document.createElement('div');
+    const h=HOP.find(x=>x.col===c&&x.row===r);
+    if(h){d.className='hop-cell';d.id='hop-'+h.c;d.textContent=h.c;}
+    else{d.className='hop-cell emp';}
+    g.appendChild(d);
+  }
+  movTok(-1);
+}
+function movTok(pos){
+  const t=document.getElementById('playerToken');
+  if(pos<0){Object.assign(t.style,{left:'calc(33% + 8px)',top:'calc(100% + 4px)',position:'absolute',transform:'translateX(-50%)'});return;}
+  const h=HOP.find(x=>x.c===pos);if(!h)return;
+  const cW=68,cH=56,gap=4;
+  t.style.left=(h.col*(cW+gap)+cW/2-14)+'px';t.style.top=(h.row*(cH+gap)+cH/2-14)+'px';t.style.position='absolute';t.style.transform='none';
+}
+function loadM3Q(){
+  const idx=G.m3Qi;if(idx>=G.m3Pool.length){endM3();return;}
+  const q=G.m3Pool[idx];
+  document.getElementById('m3-q').textContent=q.q;
+  const c=document.getElementById('m3-opts');c.innerHTML='';
+  ['A','B','C','D'].forEach((l,i)=>{
+    const b=document.createElement('button');b.className='opt-btn';
+    b.innerHTML=`<span class="opt-letter">${l}</span>${q.o[i]}`;
+    b.onclick=()=>ansM3(i,q.a);c.appendChild(b);
+  });
+  hidFB('m3');setTimeout(()=>speak(q.q),400);
+}
+function ansM3(ch,cor){
+  document.querySelectorAll('#m3-opts .opt-btn').forEach(b=>b.disabled=true);
+  if(ch===cor){
+    document.querySelectorAll('#m3-opts .opt-btn')[ch].classList.add('correct');
+    showFB('m3','[OK] CORRECTO! AVANZAS UNA CASILLA','ok');sfxOk();
+    G.m3Score++;document.getElementById('m3-score').textContent=String(G.m3Score).padStart(2,'0');
+    G.m3Pos++;const cell=document.getElementById('hop-'+(G.m3Pos+1));if(cell)cell.classList.add('clr');
+    movTok(G.m3Pos+1);G.m3Qi++;
+    if(G.m3Qi>=G.m3Pool.length||G.m3Pos>=9)setTimeout(()=>endM3(),1500);else setTimeout(()=>loadM3Q(),1600);
+  } else {
+    document.querySelectorAll('#m3-opts .opt-btn')[ch].classList.add('wrong');
+    document.querySelectorAll('#m3-opts .opt-btn')[cor].classList.add('correct');
+    showFB('m3','[X] INCORRECTO — SIGUIENTE CASILLA','bad');sfxBad();
+    G.m3Qi++;setTimeout(()=>{if(G.m3Qi>=G.m3Pool.length)endM3();else loadM3Q();},1900);
+  }
+}
+
+/* VARIABLES GLOBALES PARA ANIMACION DE ESTRELLA DE LA MUERTE */
+let dsAnimationId = null;
+let dsResizeHandler = null;
+
+/* ANIMACION ESTRELLA DE LA MUERTE - VERSION CORREGIDA SIN BUCLE */
+function showDeathStarAnimation(){
+  const overlay = document.getElementById('deathstar-animation');
+  const canvas = document.getElementById('ds-canvas');
+  const msgDiv = document.getElementById('ds-mission-complete');
+  
+  // Limpiar cualquier animación previa
+  if(dsAnimationId){
+    cancelAnimationFrame(dsAnimationId);
+    dsAnimationId = null;
+  }
+  if(dsResizeHandler){
+    window.removeEventListener('resize', dsResizeHandler);
+    dsResizeHandler = null;
+  }
+  
+  overlay.classList.add('active');
+  const ctx = canvas.getContext('2d');
+  let width=window.innerWidth, height=window.innerHeight;
+  function resizeCanvas(){
+    width=window.innerWidth; height=window.innerHeight;
+    canvas.width=width; canvas.height=height;
+  }
+  resizeCanvas();
+  dsResizeHandler = resizeCanvas;
+  window.addEventListener('resize', dsResizeHandler);
+  
+  let frame=0;
+  let explosionStarted=false;
+  let explosionParticles=[];
+  let missionTextShown=false;
+  let animationActive = true;
+  
+  let deathStarX = width*0.5, deathStarY = height*0.3;
+  let shipX = width*0.2, shipY = height*0.6;
+  let shipAngle=0;
+  
+  function drawPixelShip(x,y,angle){
+    ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
+    ctx.fillStyle='#00BFFF';
+    ctx.fillRect(-15,-6,30,12);
+    ctx.fillStyle='#87CEFA';
+    ctx.fillRect(-20,-3,5,6);
+    ctx.fillStyle='#FFFFFF';
+    ctx.fillRect(-8,-8,16,5);
+    ctx.fillRect(-8,3,16,5);
+    ctx.fillStyle='#FFD700';
+    ctx.fillRect(10,-4,8,8);
+    ctx.fillRect(14,-2,4,4);
+    ctx.fillStyle='#00BFFF';
+    ctx.fillRect(-12,-2,4,4);
+    ctx.fillRect(-12,-2,4,4);
+    ctx.restore();
+  }
+  function drawDeathStar(x,y,damage){
+    ctx.fillStyle='#333';
+    ctx.beginPath(); ctx.arc(x,y,50,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#555';
+    ctx.beginPath(); ctx.arc(x-15,y-10,12,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#222';
+    ctx.beginPath(); ctx.arc(x-15,y-10,6,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#666';
+    for(let i=0;i<12;i++){
+      const angle=i*Math.PI/6; const rad=35;
+      ctx.fillRect(x+Math.cos(angle)*rad-2,y+Math.sin(angle)*rad-2,4,4);
+    }
+    if(damage>0){
+      ctx.fillStyle='#FF4500';
+      for(let i=0;i<damage*3;i++){
+        const ang=Math.random()*Math.PI*2; const rad=Math.random()*45;
+        ctx.fillRect(x+Math.cos(ang)*rad-3,y+Math.sin(ang)*rad-3,6,6);
+      }
+    }
+  }
+  function createExplosion(cx,cy){
+    for(let i=0;i<80;i++){
+      explosionParticles.push({
+        x:cx, y:cy, vx:(Math.random()-0.5)*12, vy:(Math.random()-0.5)*12-4,
+        life:1, size:Math.random()*6+2, color:`hsl(${Math.random()*60+20},100%,50%)`
+      });
+    }
+  }
+  function animateDeathStar(){
+    if(!animationActive) return;
+    ctx.clearRect(0,0,width,height);
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,width,height);
+    ctx.fillStyle='#FFF';
+    for(let i=0;i<150;i++){
+      const sx=(i*131)%width, sy=(i*253)%height;
+      ctx.fillRect(sx,sy,1,1);
+    }
+    if(!explosionStarted){
+      shipX += (deathStarX - shipX)*0.02;
+      shipY += (deathStarY - shipY)*0.02 - 2;
+      shipAngle += 0.05;
+      drawPixelShip(shipX, shipY, shipAngle);
+      drawDeathStar(deathStarX, deathStarY, 0);
+      if(Math.hypot(shipX-deathStarX, shipY-deathStarY)<70 && frame>60){
+        explosionStarted=true;
+        createExplosion(deathStarX, deathStarY);
+        sfxWin();
+      }
+    } else {
+      drawDeathStar(deathStarX, deathStarY, 5);
+      for(let i=0;i<explosionParticles.length;i++){
+        const p=explosionParticles[i];
+        p.x+=p.vx; p.y+=p.vy; p.vy+=0.3;
+        p.life-=0.02;
+        ctx.globalAlpha=Math.min(1,p.life);
+        ctx.fillStyle=p.color;
+        ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);
+      }
+      ctx.globalAlpha=1;
+      explosionParticles=explosionParticles.filter(p=>p.life>0);
+      if(!missionTextShown && explosionParticles.length<30){
+        missionTextShown=true;
+        animationActive=false;
+        msgDiv.classList.add('show');
+        speak('\u00a1Misi\u00f3n cumplida!');
+        if(dsResizeHandler){
+          window.removeEventListener('resize', dsResizeHandler);
+          dsResizeHandler=null;
+        }
+        setTimeout(()=>{
+          overlay.classList.remove('active');
+          msgDiv.classList.remove('show');
+          showReport();
+        }, 2500);
+        return;
+      }
+    }
+    frame++;
+    dsAnimationId = requestAnimationFrame(animateDeathStar);
+  }
+  dsAnimationId = requestAnimationFrame(animateDeathStar);
+}
+
+/* FIN M3: llamamos a la animación de estrella de la muerte */
+function endM3(){
+  stopM2Music();
+  showDeathStarAnimation();
+}
+
+/* ── REPORT ── */
+function showReport(){
+  const tot=G.m1Score+G.m2Score+G.m3Score;
+  document.getElementById('finalScore').textContent=tot;
+  document.getElementById('rep-m1').textContent=G.m1Score;
+  document.getElementById('rep-m2').textContent=G.m2Score;
+  document.getElementById('rep-m3').textContent=G.m3Score;
+  document.getElementById('rep-pct').textContent=Math.round(tot/30*100)+'%';
+  const b=document.getElementById('rep-badge');
+  if(tot>=25){
+    b.style.borderColor='#00FF41';b.style.color='#00FF41';
+    b.textContent='★★★ MAGISTRADO EXPERTO ★★★ DOMINIO SOBRESALIENTE DE LA CONSTITUCION DE COLOMBIA';
+    setTimeout(()=>sfxWin(),350);showNotif('★ MAGISTRADO EXPERTO! '+tot+' / 30 PTS ★',6000);
+  } else if(tot>=20){
+    b.style.borderColor='#FFD700';b.style.color='#FFD700';
+    b.textContent='◆ LEGISLADOR COMPETENTE ◆ SOLIDO CONOCIMIENTO DE LA CARTA POLITICA';
+    setTimeout(()=>sfxWin(),350);showNotif('◆ LEGISLADOR COMPETENTE! '+tot+' / 30 PTS',5000);
+  } else if(tot>=15){
+    b.style.borderColor='#FFA500';b.style.color='#FFA500';
+    b.textContent='▲ FUNCIONARIO EN FORMACION ▲ VAS POR BUEN CAMINO, SIGUE ESTUDIANDO';
+    setTimeout(()=>sfxBoos(),350);
+  } else {
+    b.style.borderColor='#FF3333';b.style.color='#FF3333';
+    b.textContent='✕ REQUIERE REFORZAR CONOCIMIENTOS ✕ REPASA LA CONSTITUCION POLITICA DE COLOMBIA';
+    setTimeout(()=>sfxBoos(),350);
+  }
+  showScreen('report');
+  // Save this result to teacher reports store
+  saveReport({name:playerName, m1:G.m1Score, m2:G.m2Score, m3:G.m3Score, date:new Date().toISOString()});
+  // Enable image download button
+  const btnRep = document.getElementById('btn-report');
+  if(btnRep){
+    btnRep.disabled = false;
+    btnRep.style.background = '';
+    btnRep.style.color = '';
+    btnRep.style.boxShadow = '';
+    btnRep.style.cursor = '';
+  }
+}
+function restartGame(){
+  stopM2Music();stopM1Suspense();
+  // Limpiar cualquier animación residual de estrella de la muerte
+  if(dsAnimationId){
+    cancelAnimationFrame(dsAnimationId);
+    dsAnimationId = null;
+  }
+  if(dsResizeHandler){
+    window.removeEventListener('resize', dsResizeHandler);
+    dsResizeHandler = null;
+  }
+  const dsOverlay = document.getElementById('deathstar-animation');
+  if(dsOverlay) dsOverlay.classList.remove('active');
+  const dsMsg = document.getElementById('ds-mission-complete');
+  if(dsMsg) dsMsg.classList.remove('show');
+  // Disable report button for new game
+  const btnRep = document.getElementById('btn-report');
+  if(btnRep){
+    btnRep.disabled = true;
+    btnRep.style.background = '#333';
+    btnRep.style.color = '#666';
+    btnRep.style.boxShadow = '4px 4px 0 #111';
+    btnRep.style.cursor = 'not-allowed';
+  }
+  showScreen('role');
+}
+
+/* ── CSV REPORT DOWNLOAD ── */
+function downloadReportImage(){
+  const tot = G.m1Score + G.m2Score + G.m3Score;
+  const pct = Math.round(tot / 30 * 100);
+  let badge, badgeColor, stars;
+  if(tot>=25){
+    badge = 'MAGISTRADO EXPERTO';
+    badgeColor = '#00FF41';
+    stars = '★ ★ ★';
+  } else if(tot>=20){
+    badge = 'LEGISLADOR COMPETENTE';
+    badgeColor = '#FFD700';
+    stars = '★ ★ ☆';
+  } else if(tot>=15){
+    badge = 'FUNCIONARIO EN FORMACION';
+    badgeColor = '#FFA500';
+    stars = '★ ☆ ☆';
+  } else {
+    badge = 'REQUIERE REFORZAR CONOCIMIENTOS';
+    badgeColor = '#FF3333';
+    stars = '☆ ☆ ☆';
+  }
+
+  const W = 640, H = 860;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  // ── BACKGROUND ──
+  ctx.fillStyle = '#020209';
+  ctx.fillRect(0, 0, W, H);
+
+  // Scanlines
+  ctx.globalAlpha = 0.06;
+  for(let y = 0; y < H; y += 3){
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, y, W, 1);
+  }
+  ctx.globalAlpha = 1;
+
+  // Star field
+  const rng = (s) => { let x = Math.sin(s) * 43758.5453; return x - Math.floor(x); };
+  const starCols = ['#FFD700','#00FFFF','#FF00FF','#ffffff'];
+  for(let i = 0; i < 120; i++){
+    const sx = rng(i*3+1) * W, sy = rng(i*7+2) * H, sr = rng(i*13+3) * 1.2;
+    ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2);
+    ctx.fillStyle = starCols[i % starCols.length];
+    ctx.globalAlpha = rng(i*17+5) * 0.5 + 0.1;
+    ctx.fill(); ctx.globalAlpha = 1;
+  }
+
+  // ── OUTER BORDER ──
+  ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 4;
+  ctx.strokeRect(10, 10, W-20, H-20);
+  ctx.strokeStyle = '#FF6B00'; ctx.lineWidth = 2;
+  ctx.strokeRect(16, 16, W-32, H-32);
+
+  // Corner pixels
+  const corners = [[10,10],[W-18,10],[10,H-18],[W-18,H-18]];
+  corners.forEach(([cx,cy]) => {
+    ctx.fillStyle = '#00FFFF'; ctx.fillRect(cx, cy, 8, 8);
+  });
+
+  // ── TITLE HEADER ──
+  ctx.fillStyle = '#000';
+  ctx.fillRect(30, 30, W-60, 58);
+  ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2;
+  ctx.strokeRect(30, 30, W-60, 58);
+
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 28px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = '#FF6B00'; ctx.shadowBlur = 10;
+  ctx.fillText('LAW QUEST', W/2, 66);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = '#00FFFF';
+  ctx.font = '13px "Press Start 2P", monospace';
+  ctx.fillText('REPORTE DE PARTIDA', W/2, 82);
+
+  // ── PIXEL SEPARATOR ──
+  function pixSep(y){
+    const dots = [8,4,4,8,4,4,8,4,4,8,4,4,8,4,4,8,4,4,8];
+    let x = (W - dots.reduce((a,b)=>a+b+3,0))/2;
+    dots.forEach(s => {
+      ctx.fillStyle = s===8?'#FFD700':'#FF6B00';
+      const off = (8-s)/2;
+      ctx.fillRect(x, y+off, s, s);
+      x += s+3;
+    });
+  }
+  pixSep(100);
+
+  // ── STUDENT NAME ──
+  ctx.fillStyle = '#555';
+  ctx.font = '9px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('AGENTE', W/2, 126);
+
+  ctx.fillStyle = '#00FFFF';
+  ctx.font = 'bold 18px "Press Start 2P", monospace';
+  ctx.shadowColor = '#00FFFF'; ctx.shadowBlur = 8;
+  ctx.fillText(playerName.toUpperCase(), W/2, 150);
+  ctx.shadowBlur = 0;
+
+  // Date
+  ctx.fillStyle = '#444';
+  ctx.font = '8px "Press Start 2P", monospace';
+  ctx.fillText(new Date().toLocaleDateString('es-CO', {day:'2-digit',month:'long',year:'numeric'}).toUpperCase(), W/2, 168);
+
+  pixSep(178);
+
+  // ── SCORE RING ──
+  const ringX = W/2, ringY = 240, ringR = 58;
+  // Glow
+  ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 24;
+  ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(ringX, ringY, ringR, 0, Math.PI*2); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#FF6B00'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(ringX, ringY, ringR+8, 0, Math.PI*2); ctx.stroke();
+
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 40px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = '#FF6B00'; ctx.shadowBlur = 6;
+  ctx.fillText(tot, ringX, ringY+14);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#555';
+  ctx.font = '10px "Press Start 2P", monospace';
+  ctx.fillText('/ 30', ringX, ringY+34);
+
+  // Percentage arc
+  const startA = -Math.PI/2, endA = startA + (pct/100)*Math.PI*2;
+  ctx.strokeStyle = badgeColor; ctx.lineWidth = 5;
+  ctx.globalAlpha = 0.35;
+  ctx.beginPath(); ctx.arc(ringX, ringY, ringR, startA, endA); ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // ── MISSION PANELS ──
+  const missions = [
+    {label:'MISION 1', sub:'INTRUSION', score: G.m1Score, max:10, col:'#FF00FF'},
+    {label:'MISION 2', sub:'MAGISTRADO', score: G.m2Score, max:10, col:'#00FFFF'},
+    {label:'MISION 3', sub:'LA GOLOSA', score: G.m3Score, max:10, col:'#FFD700'},
+  ];
+  const panW = 158, panH = 78, panY = 320, gap = 20;
+  const totalPanW = missions.length * panW + (missions.length-1)*gap;
+  let panX = (W - totalPanW)/2;
+
+  missions.forEach(m => {
+    // Panel bg
+    ctx.fillStyle = '#080818';
+    ctx.fillRect(panX, panY, panW, panH);
+    ctx.strokeStyle = m.col; ctx.lineWidth = 2;
+    ctx.strokeRect(panX, panY, panW, panH);
+
+    // Score bar
+    const barY = panY + panH - 16, barW = panW - 20, barH = 8;
+    ctx.fillStyle = '#111'; ctx.fillRect(panX+10, barY, barW, barH);
+    ctx.fillStyle = m.col;
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(panX+10, barY, barW*(m.score/m.max), barH);
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = '#555'; ctx.font = '7px "Press Start 2P", monospace'; ctx.textAlign='center';
+    ctx.fillText(m.label, panX + panW/2, panY+16);
+    ctx.fillStyle = '#888'; ctx.font = '6px "Press Start 2P", monospace';
+    ctx.fillText(m.sub, panX + panW/2, panY+28);
+
+    ctx.fillStyle = m.col;
+    ctx.font = 'bold 22px "Press Start 2P", monospace';
+    ctx.shadowColor = m.col; ctx.shadowBlur = 8;
+    ctx.fillText(m.score, panX + panW/2, panY+58);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#444'; ctx.font = '7px "Press Start 2P", monospace';
+    ctx.fillText('/ '+m.max+' PTS', panX + panW/2, panY+70);
+
+    panX += panW + gap;
+  });
+
+  pixSep(416);
+
+  // ── BADGE ──
+  ctx.fillStyle = '#000';
+  ctx.fillRect(30, 432, W-60, 70);
+  ctx.strokeStyle = badgeColor; ctx.lineWidth = 3;
+  ctx.strokeRect(30, 432, W-60, 70);
+
+  ctx.fillStyle = badgeColor;
+  ctx.font = 'bold 14px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = badgeColor; ctx.shadowBlur = 12;
+  ctx.fillText(stars, W/2, 460);
+  ctx.shadowBlur = 0;
+  ctx.font = '10px "Press Start 2P", monospace';
+  // Word wrap badge text
+  const words = badge.split(' '), maxLineW = W - 100;
+  let line='', lines=[], tx=W/2, ty=480;
+  words.forEach(w => {
+    const test = line ? line+' '+w : w;
+    if(ctx.measureText(test).width > maxLineW && line){ lines.push(line); line=w; }
+    else line=test;
+  });
+  if(line) lines.push(line);
+  lines.forEach((l,i) => ctx.fillText(l, tx, ty + i*18));
+
+  // Percentage text
+  ctx.fillStyle = '#666'; ctx.font = '8px "Press Start 2P", monospace';
+  ctx.fillText('RENDIMIENTO TOTAL: '+pct+'%', W/2, 508);
+
+  pixSep(520);
+
+  // ── QUESTION BREAKDOWN TABLE ──
+  ctx.fillStyle = '#333'; ctx.font = '8px "Press Start 2P", monospace'; ctx.textAlign='center';
+  ctx.fillText('DETALLE DE RESPUESTAS', W/2, 546);
+
+  const tableY = 558, rowH = 22, colX = [36, 150, 460, 590];
+  // Header
+  ctx.fillStyle = '#0a0a20';
+  ctx.fillRect(30, tableY, W-60, rowH);
+  ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1;
+  ctx.strokeRect(30, tableY, W-60, rowH);
+  const headers = ['MISION','PREGUNTA','CORRECTA'];
+  ctx.fillStyle = '#FFD700'; ctx.font = '6px "Press Start 2P", monospace';
+  ctx.textAlign='left';
+  ctx.fillText(headers[0], colX[0], tableY+14);
+  ctx.fillText(headers[1], colX[1], tableY+14);
+  ctx.fillText(headers[2], colX[2], tableY+14);
+
+  // Rows — combine all pools up to answered count
+  const allQ = [];
+  G.m1Pool.slice(0, G.m1Qi).forEach((q,i) => allQ.push({m:'M1', q:q.q, a:q.o[q.a]}));
+  G.m2Pool.slice(0, G.m2Qi).forEach((q,i) => allQ.push({m:'M2', q:q.q, a:q.o[q.a]}));
+  G.m3Pool.slice(0, G.m3Qi).forEach((q,i) => allQ.push({m:'M3', q:q.q, a:q.o[q.a]}));
+
+  const maxRows = Math.min(allQ.length, Math.floor((H - tableY - rowH - 60) / rowH));
+  allQ.slice(0, maxRows).forEach((row, idx) => {
+    const ry = tableY + rowH + idx*rowH;
+    ctx.fillStyle = idx%2===0 ? '#050510' : '#08081a';
+    ctx.fillRect(30, ry, W-60, rowH);
+    ctx.strokeStyle = '#1a1a40'; ctx.lineWidth=1;
+    ctx.strokeRect(30, ry, W-60, rowH);
+
+    const mCol = row.m==='M1'?'#FF00FF': row.m==='M2'?'#00FFFF':'#FFD700';
+    ctx.fillStyle = mCol; ctx.font='6px "Press Start 2P",monospace'; ctx.textAlign='left';
+    ctx.fillText(row.m, colX[0], ry+14);
+
+    // Truncate question
+    ctx.fillStyle = '#888'; ctx.font='6px "Press Start 2P",monospace';
+    let qText = row.q.length > 42 ? row.q.substring(0,40)+'...' : row.q;
+    ctx.fillText(qText, colX[1], ry+14);
+
+    // Truncate answer
+    ctx.fillStyle = '#00FF41';
+    let aText = row.a.length > 14 ? row.a.substring(0,12)+'...' : row.a;
+    ctx.fillText(aText, colX[2], ry+14);
+  });
+
+  pixSep(H - 52);
+
+  // ── FOOTER ──
+  ctx.fillStyle = '#333'; ctx.font='6px "Press Start 2P",monospace'; ctx.textAlign='center';
+  ctx.fillText('LAW QUEST · EVALUACION CONSTITUCIONAL COLOMBIA 1991', W/2, H-32);
+  ctx.fillStyle='#222';
+  ctx.fillText('MANUELA SUAREZ · JENNIFER QUIROZ · SANTIAGO HOYOS · SEBASTIAN HOYOS · SEBASTIAN QUERUBIN · ALEJANDRA CANO', W/2, H-18);
+
+  // ── DOWNLOAD ──
+  cv.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'LawQuest_Reporte_' + playerName.replace(/\s+/g,'_') + '.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showNotif('REPORTE DESCARGADO COMO IMAGEN', 3000);
+  }, 'image/png');
+}
+
+/* ── FB HELPERS ── */
+function showFB(id,msg,type){const el=document.getElementById(id==='entry'?'entry-fb':id+'-fb');if(!el)return;el.textContent=msg;el.className='fb '+type+' show';}
+function hidFB(id){const el=document.getElementById(id==='entry'?'entry-fb':id+'-fb');if(el)el.className='fb';}
+</script>
+</body>
+</html>
