@@ -939,6 +939,33 @@ function showNotif(msg,dur=3000){const n=document.getElementById('notif');n.text
 let allReports = JSON.parse(localStorage.getItem('lq_reports')||'[]');
 function saveReport(r){ allReports.push(r); try{localStorage.setItem('lq_reports',JSON.stringify(allReports));}catch(e){} }
 
+/* ── GOOGLE SHEETS INTEGRATION ── */
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbzHBjO4lL7J-9luC5FqjzCLKh74dfewPq9FlXzVYyfZQkdg88ffcrqFxs8PpiTyTsM/exec";
+
+async function enviarASheets(nombre, m1, m2, m3) {
+  const total = m1 + m2 + m3;
+  const porcentaje = Math.round((total / 30) * 100);
+  let rango = 'REQUIERE REFORZAR';
+  if (total >= 25) rango = 'MAGISTRADO EXPERTO';
+  else if (total >= 20) rango = 'LEGISLADOR COMPETENTE';
+  else if (total >= 15) rango = 'FUNCIONARIO EN FORMACION';
+
+  const payload = { nombre, m1, m2, m3, total, porcentaje, rango };
+
+  try {
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    console.log('✅ Resultado enviado a Google Sheets');
+    showNotif('RESULTADO REGISTRADO EN LA NUBE ✓', 3500);
+  } catch (err) {
+    console.warn('⚠️ No se pudo enviar a Sheets:', err);
+  }
+}
+
 /* ── ROLE SELECTION ── */
 let currentRole = 'student';
 function selectRole(role){
@@ -1501,8 +1528,10 @@ function showReport(){
     setTimeout(()=>sfxBoos(),350);
   }
   showScreen('report');
-  // Save this result to teacher reports store
+  // Save this result to teacher reports store (local)
   saveReport({name:playerName, m1:G.m1Score, m2:G.m2Score, m3:G.m3Score, date:new Date().toISOString()});
+  // Send to Google Sheets (cloud — visible from any device)
+  enviarASheets(playerName, G.m1Score, G.m2Score, G.m3Score);
   // Enable image download button
   const btnRep = document.getElementById('btn-report');
   if(btnRep){
