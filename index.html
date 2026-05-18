@@ -935,7 +935,7 @@ let allReports = JSON.parse(localStorage.getItem('lq_reports')||'[]');
 function saveReport(r){ allReports.push(r); try{localStorage.setItem('lq_reports',JSON.stringify(allReports));}catch(e){} }
 
 /* ── GOOGLE SHEETS INTEGRATION ── */
-const SHEETS_URL = "https://script.google.com/macros/s/AKfycbzHBjO4lL7J-9luC5FqjzCLKh74dfewPq9FlXzVYyfZQkdg88ffcrqFxs8PpiTyTsM/exec";
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycby92Q9_YyhICAZUUl8GSs5BUAh8h2HFIVUah6KXvLmofn0l8XxTYq1i74GR6KqzRW8/exec";
 
 async function enviarASheets(nombre, m1, m2, m3) {
   const total = m1 + m2 + m3;
