@@ -1008,8 +1008,17 @@ async function renderTeacherTable(){
   count.textContent='CARGANDO...';
 
   try {
-    const res = await fetch(SHEETS_URL);
-    const data = await res.json();
+    // Usamos el truco de script tag para evitar CORS (JSONP style)
+    const url = SHEETS_URL + '?callback=__sheetsCallback&t=' + Date.now();
+
+    const data = await new Promise((resolve, reject) => {
+      window.__sheetsCallback = (d) => { resolve(d); };
+      const script = document.createElement('script');
+      script.src = url;
+      script.onerror = () => reject(new Error('Script load error'));
+      setTimeout(() => reject(new Error('Timeout')), 8000);
+      document.head.appendChild(script);
+    });
 
     count.textContent=data.length+' ESTUDIANTE'+(data.length!==1?'S':'')+' REGISTRADO'+(data.length!==1?'S':'');
 
@@ -1021,7 +1030,6 @@ async function renderTeacherTable(){
     tbody.innerHTML='';
     data.forEach((r,i)=>{
       const tot=Number(r.total);
-      const pct=r.porcentaje;
       const badge=getBadgeForScore(tot);
       const badgeCol=tot>=25?'#00FF41':tot>=20?'#FFD700':tot>=15?'#FFA500':'#FF3333';
       const tr=document.createElement('tr');
@@ -1033,7 +1041,7 @@ async function renderTeacherTable(){
         <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m2}</td>
         <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m3}</td>
         <td style="padding:5px 10px;text-align:center;font-weight:bold;color:var(--px);">${tot}</td>
-        <td style="padding:5px 10px;text-align:center;color:#888;">${pct}</td>
+        <td style="padding:5px 10px;text-align:center;color:#888;">${r.porcentaje}</td>
         <td style="padding:5px 10px;color:${badgeCol};font-size:.8rem;">${badge}</td>`;
       tbody.appendChild(tr);
     });
