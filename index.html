@@ -945,14 +945,11 @@ async function enviarASheets(nombre, m1, m2, m3) {
   else if (total >= 20) rango = 'LEGISLADOR COMPETENTE';
   else if (total >= 15) rango = 'FUNCIONARIO EN FORMACION';
 
-  const payload = { nombre, m1, m2, m3, total, porcentaje, rango };
-
+  const params = new URLSearchParams({ nombre, m1, m2, m3, total, porcentaje, rango });
   try {
-    await fetch(SHEETS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    await fetch(SHEETS_URL + '?' + params.toString(), {
+      method: 'GET',
+      mode: 'no-cors'
     });
     console.log('✅ Resultado enviado a Google Sheets');
     showNotif('RESULTADO REGISTRADO EN LA NUBE ✓', 3500);
