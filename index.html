@@ -368,7 +368,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   <div class="px-box" style="max-width:480px;padding:12px 18px;">
     <div style="font-family:'Press Start 2P';font-size:.42rem;color:#444;margin-bottom:8px;letter-spacing:2px;text-align:center;">&#9670; AUTORES DEL PROYECTO &#9670;</div>
     <div style="font-family:'VT323';font-size:.95rem;color:var(--px);line-height:1.85;letter-spacing:1px;text-align:center;">
-      MANUELA SUAREZ &nbsp;·&nbsp; JENNIFER QUIROZ
+      Alejandra Cano &nbsp;·&nbsp; JENNIFER QUIROZ
     </div>
     <div style="font-family:'VT323';font-size:.8rem;color:#3a3a3a;margin-top:6px;letter-spacing:2px;text-align:center;">DERECHO CONSTITUCIONAL · 2026</div>
   </div>
@@ -438,7 +438,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   <div class="px-box" style="max-width:460px;margin-bottom:12px;padding:12px 18px;">
     <div style="font-family:'Press Start 2P';font-size:.45rem;color:#555;margin-bottom:8px;letter-spacing:2px;text-align:center;">&#9670; AUTORES DEL PROYECTO &#9670;</div>
     <div style="font-family:'VT323';font-size:.95rem;color:var(--px);line-height:1.9;letter-spacing:1px;text-align:left;">
-      &#9658; MANUELA SUAREZ<br>
+      &#9658; Alejandra Cano<br>
       &#9658; JENNIFER QUIROZ<br>
     </div>
     <div style="font-family:'VT323';font-size:.8rem;color:#444;margin-top:6px;letter-spacing:2px;text-align:center;">DERECHO CONSTITUCIONAL &middot; 2026</div>
@@ -585,7 +585,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
     <div style="font-family:'Press Start 2P';font-size:.65rem;color:var(--px);margin-bottom:6px;letter-spacing:2px;">&#127979; PANEL DOCENTE · LAW QUEST</div>
     <div class="px-sep"><span></span><span></span><span></span><span></span><span></span></div>
     <div style="font-family:'VT323';font-size:.85rem;color:#444;margin-bottom:10px;letter-spacing:2px;text-align:center;">
-      MANUELA SUAREZ · JENNIFER QUIROZ 
+      Alejandra Cano · JENNIFER QUIROZ 
     </div>
     <div style="font-family:'VT323';font-size:1rem;color:var(--cyan);margin-bottom:12px;" id="teacher-count">0 ESTUDIANTES REGISTRADOS</div>
     <div style="overflow-x:auto;max-height:55vh;overflow-y:auto;margin-bottom:12px;">
@@ -1046,7 +1046,7 @@ function downloadAllExcel(){
   // Build CSV with BOM that Excel opens correctly
   let csv='\uFEFF';
   csv+='LAW QUEST — REPORTE DOCENTE\n';
-  csv+='Autores: Manuela Suarez, Jennifer Quiroz\n';
+  csv+='Autores: Alejandra Cano, Jennifer Quiroz\n';
   csv+='Fecha exportacion: '+new Date().toLocaleString('es-CO')+'\n\n';
   csv+='Estudiante,Mision 1,Mision 2,Mision 3,Total,Porcentaje,Rango\n';
   allReports.forEach(r=>{
@@ -1820,7 +1820,7 @@ function downloadReportImage(){
   ctx.fillStyle = '#333'; ctx.font='6px "Press Start 2P",monospace'; ctx.textAlign='center';
   ctx.fillText('LAW QUEST · EVALUACION CONSTITUCIONAL COLOMBIA 1991', W/2, H-32);
   ctx.fillStyle='#222';
-  ctx.fillText('MANUELA SUAREZ · JENNIFER QUIROZ', W/2, H-18);
+  ctx.fillText('Alejandra Cano · JENNIFER QUIROZ', W/2, H-18);
 
   // ── DOWNLOAD ──
   cv.toBlob(blob => {
