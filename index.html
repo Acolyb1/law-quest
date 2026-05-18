@@ -1001,33 +1001,48 @@ function getBadgeForScore(tot){
   return 'REQUIERE REFORZAR';
 }
 
-function renderTeacherTable(){
+async function renderTeacherTable(){
   const tbody=document.getElementById('teacher-tbody');
   const count=document.getElementById('teacher-count');
-  tbody.innerHTML='';
-  count.textContent=allReports.length+' ESTUDIANTE'+(allReports.length!==1?'S':'')+' REGISTRADO'+(allReports.length!==1?'S':'');
-  if(allReports.length===0){
-    tbody.innerHTML='<tr><td colspan="7" style="padding:16px;color:#333;text-align:center;font-family:VT323;">— SIN REGISTROS AUN —</td></tr>';
-    return;
+  tbody.innerHTML='<tr><td colspan="7" style="padding:16px;color:#555;text-align:center;font-family:VT323;">CARGANDO DATOS...</td></tr>';
+  count.textContent='CARGANDO...';
+
+  try {
+    const res = await fetch(SHEETS_URL);
+    const data = await res.json();
+
+    count.textContent=data.length+' ESTUDIANTE'+(data.length!==1?'S':'')+' REGISTRADO'+(data.length!==1?'S':'');
+
+    if(data.length===0){
+      tbody.innerHTML='<tr><td colspan="7" style="padding:16px;color:#333;text-align:center;font-family:VT323;">— SIN REGISTROS AUN —</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML='';
+    data.forEach((r,i)=>{
+      const tot=Number(r.total);
+      const pct=r.porcentaje;
+      const badge=getBadgeForScore(tot);
+      const badgeCol=tot>=25?'#00FF41':tot>=20?'#FFD700':tot>=15?'#FFA500':'#FF3333';
+      const tr=document.createElement('tr');
+      tr.style.borderBottom='1px solid #1a1a40';
+      tr.style.background=i%2===0?'#050510':'#08081a';
+      tr.innerHTML=`
+        <td style="padding:5px 10px;color:var(--cyan);">${r.nombre}</td>
+        <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m1}</td>
+        <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m2}</td>
+        <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m3}</td>
+        <td style="padding:5px 10px;text-align:center;font-weight:bold;color:var(--px);">${tot}</td>
+        <td style="padding:5px 10px;text-align:center;color:#888;">${pct}</td>
+        <td style="padding:5px 10px;color:${badgeCol};font-size:.8rem;">${badge}</td>`;
+      tbody.appendChild(tr);
+    });
+
+  } catch(err) {
+    count.textContent='ERROR AL CARGAR';
+    tbody.innerHTML='<tr><td colspan="7" style="padding:16px;color:var(--red);text-align:center;font-family:VT323;">⚠ NO SE PUDO CONECTAR AL SHEETS</td></tr>';
+    console.warn('Error cargando Sheets:', err);
   }
-  allReports.forEach((r,i)=>{
-    const tot=r.m1+r.m2+r.m3;
-    const pct=Math.round(tot/30*100);
-    const badge=getBadgeForScore(tot);
-    const badgeCol=tot>=25?'#00FF41':tot>=20?'#FFD700':tot>=15?'#FFA500':'#FF3333';
-    const tr=document.createElement('tr');
-    tr.style.borderBottom='1px solid #1a1a40';
-    tr.style.background=i%2===0?'#050510':'#08081a';
-    tr.innerHTML=`
-      <td style="padding:5px 10px;color:var(--cyan);">${r.name}</td>
-      <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m1}</td>
-      <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m2}</td>
-      <td style="padding:5px 10px;text-align:center;color:var(--px);">${r.m3}</td>
-      <td style="padding:5px 10px;text-align:center;font-weight:bold;color:var(--px);">${tot}</td>
-      <td style="padding:5px 10px;text-align:center;color:#888;">${pct}%</td>
-      <td style="padding:5px 10px;color:${badgeCol};font-size:.8rem;">${badge}</td>`;
-    tbody.appendChild(tr);
-  });
 }
 function clearAllReports(){
   if(!confirm('¿Borrar todos los reportes?')) return;
