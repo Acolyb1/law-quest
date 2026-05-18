@@ -440,10 +440,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
     <div style="font-family:'VT323';font-size:.95rem;color:var(--px);line-height:1.9;letter-spacing:1px;text-align:left;">
       &#9658; MANUELA SUAREZ<br>
       &#9658; JENNIFER QUIROZ<br>
-      &#9658; SANTIAGO HOYOS<br>
-      &#9658; SEBASTIAN HOYOS<br>
-      &#9658; SEBASTIAN QUERUBIN<br>
-      &#9658; ALEJANDRA CANO
     </div>
     <div style="font-family:'VT323';font-size:.8rem;color:#444;margin-top:6px;letter-spacing:2px;text-align:center;">DERECHO CONSTITUCIONAL &middot; 2026</div>
   </div>
@@ -1050,7 +1046,7 @@ function downloadAllExcel(){
   // Build CSV with BOM that Excel opens correctly
   let csv='\uFEFF';
   csv+='LAW QUEST — REPORTE DOCENTE\n';
-  csv+='Autores: Manuela Suarez, Jennifer Quiroz, Santiago Hoyos, Sebastian Hoyos, Sebastian Querubin, Alejandra Cano\n';
+  csv+='Autores: Manuela Suarez, Jennifer Quiroz\n';
   csv+='Fecha exportacion: '+new Date().toLocaleString('es-CO')+'\n\n';
   csv+='Estudiante,Mision 1,Mision 2,Mision 3,Total,Porcentaje,Rango\n';
   allReports.forEach(r=>{
@@ -1824,7 +1820,7 @@ function downloadReportImage(){
   ctx.fillStyle = '#333'; ctx.font='6px "Press Start 2P",monospace'; ctx.textAlign='center';
   ctx.fillText('LAW QUEST · EVALUACION CONSTITUCIONAL COLOMBIA 1991', W/2, H-32);
   ctx.fillStyle='#222';
-  ctx.fillText('MANUELA SUAREZ · JENNIFER QUIROZ · SANTIAGO HOYOS · SEBASTIAN HOYOS · SEBASTIAN QUERUBIN · ALEJANDRA CANO', W/2, H-18);
+  ctx.fillText('MANUELA SUAREZ · JENNIFER QUIROZ', W/2, H-18);
 
   // ── DOWNLOAD ──
   cv.toBlob(blob => {
